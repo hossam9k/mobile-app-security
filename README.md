@@ -1,5 +1,4 @@
-<img width="736" height="420" alt="Central Security Lock on Digital Circuit Cyber Protection Core Red Encryption Shield" src="https://github.com/user-attachments/assets/8ae6aa36-c972-4cfb-a509-693bd1e72290" />
-
+<img width="736" alt="Mobile Application Security — A Study Book for Engineers" src="assets/preview-25.png" />
 
 # Mobile Application Security — A Study Book for Engineers
 
