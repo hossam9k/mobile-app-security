@@ -1,5 +1,3 @@
-<img width="736" alt="Mobile Application Security — A Study Book for Engineers" src="assets/preview-25.png" />
-
 # Mobile Application Security — A Study Book for Engineers
 
 A practical, verified reference on securing Android, iOS and Kotlin Multiplatform apps. Written to be studied from, not skimmed: every mechanism is explained at the level of *why it works*, so you can reason about cases this book does not cover.
