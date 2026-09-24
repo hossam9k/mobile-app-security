@@ -1,0 +1,31 @@
+# Structural checks on every push and pull request, following the book's own
+# advice in §15.3: SHA-pinned actions, a token that can do nothing, no secrets.
+name: check-book
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04   # pinned: ships swiftc, so Swift blocks are parsed
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install xmllint
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends libxml2-utils
+      - name: Cross-references, captions, code fences, Swift and XML syntax
+        run: python3 scripts/check.py
+      - name: Single-file edition is up to date
+        run: |
+          python3 scripts/build.py --md-only
+          git diff --exit-code -- dist/Mobile-Application-Security-single-file.md \
+            || { echo "::error::Run 'python3 scripts/build.py' and commit dist/"; exit 1; }
