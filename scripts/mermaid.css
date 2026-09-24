@@ -1,0 +1,7 @@
+/* House style for rendered diagrams (scripts/build.py): lines never run through text. */
+.messageText, .noteText, .loopText, .labelText {
+  paint-order: stroke fill !important;
+  stroke: #FFFFFF !important;
+  stroke-width: 7px !important;
+  stroke-linejoin: round !important;
+}
