@@ -31,6 +31,8 @@ A practical, verified reference on securing Android, iOS, and Kotlin Multiplatfo
 
 The whole book also comes as a [single Markdown file](dist/Mobile-Application-Security-single-file.md) and a [PDF](dist/Mobile-Application-Security.pdf). `scripts/build.py` builds both from `book/`.
 
+**Need the short version?** The [cheat sheet](CHEATSHEET.md) is the whole book in a 20-minute read: every key term in one line, each topic in a few lines, the top interview questions with short answers, common myths, and the numbers worth remembering. It's also a [printable PDF](dist/Mobile-Security-Cheat-Sheet.pdf).
+
 ---
 
 ## Reading orders

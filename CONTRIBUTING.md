@@ -28,7 +28,7 @@ predictable places.
 python3 scripts/check.py            # cross-references, code fences, Swift, XML, workflow YAML
 python3 scripts/check.py --mermaid  # also render every Mermaid diagram (needs Node)
 python3 scripts/build.py --md-only  # rebuild the single-file Markdown edition
-python3 scripts/build.py            # also rebuild the PDF (needs pandoc 3.1+, typst, Node)
+python3 scripts/build.py            # also rebuild both PDFs: book and cheat sheet (needs pandoc 3.1+, typst, Node)
 ```
 
 On macOS, run `brew install pandoc typst actionlint node`. If a tool is missing, the check that needs it is skipped.

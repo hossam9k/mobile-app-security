@@ -8482,7 +8482,7 @@ A BFF is a thin backend layer between your app and everything else. It holds eve
 
 **Q: What is an impossible-travel check, and how do you stop it flagging commuters?** `[Intermediate]`
 
-It flags an account that moved faster than is physically possible between two sessions, roughly faster than a commercial flight. Use backend-side IP geolocation rather than device GPS: it needs no permission, a user can't spoof it casually, and it avoids a device-location permission, though location inferred from an IP address may still belong in your privacy declarations *(reasoned)*. IP geolocation can be off by hundreds of kilometers, and carriers route traffic through distant gateways, so ignore small jumps with a noise threshold. VPNs will still trip it, so feed the result into the score rather than blocking on it.
+It flags an account that moved faster than is physically possible between two sessions, roughly faster than a commercial flight. Use backend-side IP geolocation rather than device GPS: it needs no permission, and it avoids a device-location permission, though location inferred from an IP address may still belong in your privacy declarations *(reasoned)*. IP geolocation can be off by hundreds of kilometers, and carriers route traffic through distant gateways, so ignore small jumps with a noise threshold. VPNs will still trip it, so feed the result into the score rather than blocking on it.
 
 *Taught in §12.5.*
 

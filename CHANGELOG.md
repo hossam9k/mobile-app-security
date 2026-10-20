@@ -3,6 +3,16 @@
 Corrections are the point of this repository, so they are recorded here as well as in
 [Part 12](book/12-verification.md). Newest first.
 
+## 2026-10-20 — cheat sheet
+
+- **Added [`CHEATSHEET.md`](CHEATSHEET.md)** and a printable `dist/Mobile-Security-Cheat-Sheet.pdf`: a
+  20-minute review before an interview or design review. Key terms in one line each, every topic in a few
+  lines, 31 top questions with short answers, myths versus facts, numbers worth remembering, and a
+  five-step way to answer any design question. `scripts/check.py` checks its section references.
+- **Part 10:** removed "a user can't spoof it casually" from the impossible-travel answer, matching §12.5.
+- **Build:** `scripts/build.py` now renders the cheat-sheet PDF too, and both PDFs use US English
+  hyphenation (`region=US`), matching the American house style.
+
 ## 2026-10-20 — editorial and currency pass
 
 - **Every line re-edited** in the Google and Microsoft developer-documentation voice: second person,

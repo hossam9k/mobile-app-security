@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the single-file Markdown and the PDF from book/*.md.
 
-    python3 scripts/build.py            # single-file MD + PDF
+    python3 scripts/build.py            # single-file MD + PDF + cheat-sheet PDF
     python3 scripts/build.py --md-only  # single-file MD only
 
 Requires, for the PDF: pandoc >= 3.1, typst, and Node (npx) for
@@ -45,6 +45,9 @@ ORDER = [
 
 SINGLE_MD = DIST / "Mobile-Application-Security-single-file.md"
 PDF = DIST / "Mobile-Application-Security.pdf"
+CHEATSHEET = ROOT / "CHEATSHEET.md"
+CHEATSHEET_PDF = DIST / "Mobile-Security-Cheat-Sheet.pdf"
+REPO_URL = "https://github.com/hossam9k/mobile-app-security/blob/main/"
 MERMAID_CLI = "@mermaid-js/mermaid-cli@11.17.0"  # pinned: output must not change under you
 
 FRONTMATTER = re.compile(r"\A---\n.*?\n---\n+", re.S)
@@ -181,7 +184,7 @@ def build_pdf(single_md: str) -> None:
             "--metadata", "author=Hossam Atef",
             "--metadata", f"date=Edition 1 · revised {last_verified():%-d %B %Y}",
             "--variable", "lang=en",
-            "--variable", "region=GB",
+            "--variable", "region=US",
             "--variable", "papersize=a4",
             "--variable", "fontsize=10pt",
             "--variable", "margin.x=2cm",
@@ -196,6 +199,40 @@ def build_pdf(single_md: str) -> None:
     print(f"wrote {PDF.relative_to(ROOT)}")
 
 
+def build_cheatsheet_pdf() -> None:
+    """Render CHEATSHEET.md on its own, with repository links pointing at GitHub."""
+    text = CHEATSHEET.read_text(encoding="utf-8")
+    # Relative links would dangle in a standalone PDF, so point them at the repository.
+    text = re.sub(r"\]\((?!https?://|#)([^)\s]+)\)", lambda m: f"]({REPO_URL}{m.group(1)})", text)
+    # pandoc metadata supplies the title, so drop the Markdown one.
+    text = re.sub(r"\A# .*\n+", "", text, count=1)
+    source = ROOT / "build" / "cheatsheet-for-pdf.md"
+    source.parent.mkdir(exist_ok=True)
+    source.write_text(text, encoding="utf-8")
+    subprocess.run(
+        [
+            "pandoc", str(source),
+            "--from", "gfm+gfm_auto_identifiers+attributes",
+            "--to", "pdf",
+            "--pdf-engine", "typst",
+            "--metadata", "title=Mobile App Security Cheat Sheet",
+            "--metadata", "author=Hossam Atef",
+            "--metadata", f"date={last_verified():%-d %B %Y}",
+            "--variable", "lang=en",
+            "--variable", "region=US",
+            "--variable", "papersize=a4",
+            "--variable", "fontsize=9pt",
+            "--variable", "margin.x=1.6cm",
+            "--variable", "margin.y=1.6cm",
+            "--variable", "section-numbering=",
+            "--include-in-header", str(ROOT / "scripts" / "pdf-style.typ"),
+            "--output", str(CHEATSHEET_PDF),
+        ],
+        check=True,
+    )
+    print(f"wrote {CHEATSHEET_PDF.relative_to(ROOT)}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--md-only", action="store_true", help="skip the PDF")
@@ -204,6 +241,7 @@ def main() -> None:
     single_md = build_single_md()
     if not args.md_only:
         build_pdf(single_md)
+        build_cheatsheet_pdf()
 
 
 if __name__ == "__main__":
