@@ -1,19 +1,19 @@
 ---
 part: 09
-last_verified: 2026-09-24
+last_verified: 2026-10-20
 volatility: medium
-recheck_because: "MASWE v1.0.0 (Aug 2026) renumbered every weakness once; MASTG v2.0.0 (Jun 2026) deprecated all v1 tests; placeholders are still being filled; some MASTG tests link to a neighbouring MASWE, so the Tests column can change without new tests; the platform-defaults table moves with each Android and iOS release"
+recheck_because: "MASWE v1.0.0 (Aug 2026) renumbered every weakness once; MASTG v2.0.0 (Jun 2026) deprecated all v1 tests; placeholders are still being filled; some MASTG tests link to a neighboring MASWE, so the Tests column can change without new tests; the platform-defaults table moves with each Android and iOS release"
 ---
 
-# Part 9: The catalogues
+# Part 9: The catalogs
 
-The previous parts explain mechanisms. This part is the standard's own structure, so you can audit against it and speak its vocabulary.
+The earlier parts explain mechanisms. This part lays out the OWASP Mobile Application Security (MAS) standard in its own structure, so you can audit against it and use its vocabulary. The standard has three catalogs: the MASVS (Mobile Application Security Verification Standard) lists the requirements, the MASWE (Mobile App Security Weakness Enumeration) lists what goes wrong, and the MASTG (Mobile Application Security Testing Guide) tells you how to test for it.
 
-A reviewer who cites `MASTG-TEST-0001` in 2026 has told you, in one ID, that their checklist is out of date: that test is deprecated. IDs are how the standard is navigated, and they move. This part gives you the current ones and shows you how to spot the stale ones.
+A reviewer who cites `MASTG-TEST-0001` in 2026 has told you, in one ID, that their checklist is out of date: that test is deprecated. You navigate the standard by ID, and IDs move. This part gives you the current IDs and shows you how to spot stale ones.
 
-Everything here was read from `mas.owasp.org` and the OWASP `masvs`, `maswe` and `mastg` repositories on 23–24 September 2026. Control statements and weakness titles are quoted as published. Where I add a one-line explanation, that gloss is mine; the normative text is at the linked page.
+I read everything here from `mas.owasp.org` and the OWASP `masvs`, `maswe`, and `mastg` repositories on 23–24 September 2026, and rechecked the IDs, titles, and counts against the same sources on 20 October 2026. I quote control statements and weakness titles as published. Where I add a one-line explanation, that gloss is mine; the normative text is on the linked page.
 
-**Versions in force on that date:**
+**Versions in force on both dates:**
 
 | Component | Version | Released | What it means for you |
 |---|---|---|---|
@@ -21,7 +21,7 @@ Everything here was read from `mas.owasp.org` and the OWASP `masvs`, `maswe` and
 | MASWE | v1.0.0 | 17 August 2026 | First stable release. 78 weaknesses, **every ID renumbered once** from the beta; stable from now on |
 | MASTG | v2.0.0 | 30 June 2026 | The v2 refactor is complete. **All v1 tests are deprecated** and shown only behind "Show Deprecated" |
 
-> **Trap:** MASWE IDs from before 17 August 2026 are *beta* IDs and can mean something different now. The beta catalogue had 119 entries; v1.0.0 absorbed 47 of them into others, renamed and rescoped 72, and added 6, giving 78 with no gaps. An older document citing "MASWE-0027" may mean random-number generation (beta) or insecure certificate validation (v1.0.0). Translate old IDs with the `maswe-beta` key in the v1.0.0 `OWASP_MASWE.yaml` release asset. The mapping is not always one-to-one: some beta IDs appear under more than one v1 weakness, and at least one (beta MASWE-0097) appears under none, so check the title as well as the number.
+> **Trap:** MASWE IDs from before 17 August 2026 are *beta* IDs and can mean something different now. The beta catalog had 119 entries. v1.0.0 absorbed 47 of them into other weaknesses, renamed and rescoped 72, and added 6 new ones, giving 78 with no gaps. An older document citing "MASWE-0027" may mean random-number generation (beta) or insecure certificate validation (v1.0.0). To translate an old ID, look it up under the `maswe-beta` key in the v1.0.0 `OWASP_MASWE.yaml` release asset. The mapping isn't always one-to-one: seven beta IDs appear under more than one v1 weakness, and one (beta MASWE-0097) appears under none. Check the title as well as the number.
 
 The pieces connect in one direction, from abstract to concrete:
 
@@ -40,13 +40,13 @@ flowchart TB
 
 ## Chapter 26: The 24 MASVS controls
 
-Each control is one sentence. That is deliberate: MASVS says *what* must hold and leaves *how* to MASWE and MASTG. The sentence in quotation marks is the published control; the text after it is my summary.
+Each control is one sentence. That's deliberate: MASVS says *what* must hold and leaves *how* to MASWE and MASTG. The sentence in quotation marks is the published control; the text after it is my summary.
 
 ### MASVS-STORAGE — storage
 
-**MASVS-STORAGE-1**: "The app securely stores sensitive data." Covers data the app stores on purpose, wherever it lands (app-private storage or public locations such as Downloads) and whatever its origin: the user, the backend, system services or other apps.
+**MASVS-STORAGE-1**: "The app securely stores sensitive data." Covers data the app stores on purpose, wherever it lands (app-private storage or public locations such as Downloads) and whatever its origin: the user, the backend, system services, or other apps.
 
-**MASVS-STORAGE-2**: "The app prevents leakage of sensitive data." Covers *unintended* leaks that happen as a side-effect of platform features such as logs and backups, where you have a way to prevent them. §6.5 is this control in practice.
+**MASVS-STORAGE-2**: "The app prevents leakage of sensitive data." Covers *unintended* leaks that happen as a side effect of platform features such as logs and backups, where you have a way to prevent them. §6.5 is this control in practice.
 
 <https://mas.owasp.org/MASVS/05-MASVS-STORAGE/>
 
@@ -54,23 +54,23 @@ Each control is one sentence. That is deliberate: MASVS says *what* must hold an
 
 **MASVS-CRYPTO-1**: "The app employs current strong cryptography and uses it according to industry best practices." The category page points to external standards such as NIST SP 800-175B and SP 800-57 for what "current" means.
 
-**MASVS-CRYPTO-2**: "The app performs key management according to industry best practices." Keys across their whole lifecycle, including generation, storage and protection. Chapters 4 and 5.
+**MASVS-CRYPTO-2**: "The app performs key management according to industry best practices." Covers keys across their whole lifecycle, including generation, storage, and protection. Chapters 4 and 5 teach it.
 
 <https://mas.owasp.org/MASVS/06-MASVS-CRYPTO/>
 
-### MASVS-AUTH — authentication and authorisation
+### MASVS-AUTH — authentication and authorization
 
-**MASVS-AUTH-1**: "The app uses secure authentication and authorization protocols and follows the relevant best practices." Enforcement must live on the remote endpoint; the app must use the protocols correctly. Chapter 0.3 and Chapter 12.
+**MASVS-AUTH-1**: "The app uses secure authentication and authorization protocols and follows the relevant best practices." The server must enforce authentication and authorization; the app must use the protocols correctly. See Chapter 0.3 and Chapter 12.
 
-**MASVS-AUTH-2**: "The app performs local authentication securely according to the platform best practices." Biometrics and local PINs: in practice, a check that cannot be bypassed by hooking a boolean. Chapter 11.
+**MASVS-AUTH-2**: "The app performs local authentication securely according to the platform best practices." Covers biometrics and local PINs. In practice, it means a check that an attacker can't bypass by hooking a function to return `true`. See Chapter 11.
 
-**MASVS-AUTH-3**: "The app secures sensitive operations with additional authentication." Step-up authentication: Chapter 0.3 and §11.4–11.5.
+**MASVS-AUTH-3**: "The app secures sensitive operations with additional authentication." This is step-up authentication: asking the user to authenticate again before a risky action. See Chapter 0.3 and §11.4–11.5.
 
 <https://mas.owasp.org/MASVS/07-MASVS-AUTH/>
 
 ### MASVS-NETWORK — network communication
 
-**MASVS-NETWORK-1**: "The app secures all network traffic according to the current best practices." Encryption plus endpoint authentication, without quietly disabling the platform's secure defaults.
+**MASVS-NETWORK-1**: "The app secures all network traffic according to the current best practices." Requires encryption plus endpoint authentication, without quietly disabling the platform's secure defaults.
 
 **MASVS-NETWORK-2**: "The app performs identity pinning for all remote endpoints under the developer's control." Read Chapter 8 before acting on this one, and note the scoping phrase *under the developer's control*.
 
@@ -78,11 +78,11 @@ Each control is one sentence. That is deliberate: MASVS says *what* must hold an
 
 ### MASVS-PLATFORM — platform interaction
 
-**MASVS-PLATFORM-1**: "The app uses IPC mechanisms securely." Intents, content providers, deep links, app extensions. Chapter 17.
+**MASVS-PLATFORM-1**: "The app uses IPC mechanisms securely." Covers intents, content providers, deep links, and app extensions. See Chapter 17.
 
-**MASVS-PLATFORM-2**: "The app uses WebViews securely." Configuration that prevents data leakage and the exposure of native functionality through JavaScript bridges. Chapter 16.
+**MASVS-PLATFORM-2**: "The app uses WebViews securely." Covers WebView configuration that prevents data leakage and the exposure of native functionality through JavaScript bridges. See Chapter 16.
 
-**MASVS-PLATFORM-3**: "The app uses the user interface securely." Sensitive data on screen must not leak through auto-generated screenshots, notifications, shoulder surfing or a shared device.
+**MASVS-PLATFORM-3**: "The app uses the user interface securely." Sensitive data on screen must not leak through auto-generated screenshots, notifications, shoulder surfing, or a shared device.
 
 <https://mas.owasp.org/MASVS/09-MASVS-PLATFORM/>
 
@@ -90,25 +90,25 @@ Each control is one sentence. That is deliberate: MASVS says *what* must hold an
 
 **MASVS-CODE-1**: "The app requires an up-to-date platform version."
 
-**MASVS-CODE-2**: "The app has a mechanism for enforcing app updates." Chapter 24 is why.
+**MASVS-CODE-2**: "The app has a mechanism for enforcing app updates." Chapter 24 explains why.
 
 **MASVS-CODE-3**: "The app only uses software components without known vulnerabilities."
 
-**MASVS-CODE-4**: "The app validates and sanitizes all untrusted inputs." Chapter 19.
+**MASVS-CODE-4**: "The app validates and sanitizes all untrusted inputs." See Chapter 19.
 
 <https://mas.owasp.org/MASVS/10-MASVS-CODE/>
 
 ### MASVS-RESILIENCE — resilience against reverse engineering and tampering
 
-**MASVS-RESILIENCE-1**: "The app validates the integrity of the platform." Root and jailbreak detection, attestation.
+**MASVS-RESILIENCE-1**: "The app validates the integrity of the platform." Covers root and jailbreak detection, and attestation.
 
-**MASVS-RESILIENCE-2**: "The app implements anti-tampering mechanisms."
+**MASVS-RESILIENCE-2**: "The app implements anti-tampering mechanisms." Covers detecting a modified copy of your app, in its code or its resources.
 
-**MASVS-RESILIENCE-3**: "The app implements anti-static analysis mechanisms." Obfuscation.
+**MASVS-RESILIENCE-3**: "The app implements anti-static analysis mechanisms." In practice, this means obfuscation.
 
-**MASVS-RESILIENCE-4**: "The app implements anti-dynamic analysis techniques." Debugger and hook detection.
+**MASVS-RESILIENCE-4**: "The app implements anti-dynamic analysis techniques." Covers debugger and hook detection.
 
-Read Chapter 14 alongside these. This is the category where a naive reading produces controls that report success while providing little.
+Read Chapter 14 alongside these. In this category, a literal reading produces checks that report success but give little real protection.
 
 <https://mas.owasp.org/MASVS/11-MASVS-RESILIENCE/>
 
@@ -128,7 +128,7 @@ Chapter 18 covers these in practice.
 
 **Key takeaways**
 
-- There are 24 controls in 8 categories, unchanged since MASVS v2.1.0 (January 2024).
+- MASVS has 24 controls in 8 categories, unchanged since v2.1.0 (January 2024).
 - A control is a single "what" sentence. Never write "compliant with MASVS-STORAGE-1" without saying which weaknesses and tests you checked.
 - Verification levels (L1, L2, R) are no longer in MASVS; they are MAS *testing profiles* (§3.2, §23.1).
 
@@ -140,13 +140,15 @@ Chapter 18 covers these in practice.
 
 ## Chapter 27: The 78 MASWE weaknesses
 
-This is the most directly useful list in the standard, because these are the things that actually go wrong. Read it as an audit: for each line, ask whether your app does this.
+This is the most directly useful list in the standard, because these are the things that go wrong. Read it as an audit: for each line, ask whether your app does this.
 
 The numbering is MASWE v1.0.0: one contiguous block per MASVS category, in the order STORAGE → CRYPTO → AUTH → NETWORK → PLATFORM → CODE → RESILIENCE → PRIVACY. New weaknesses will take the next free number whatever their category, so the blocks will stop being contiguous from here on.
 
-The **Tests** column is the number of current MASTG v2 tests that each weakness's page on `mas.owasp.org` lists, read on 24 September 2026. Placeholder tests, which have a title but no procedure, are shown in brackets and not counted. **35 of the 78 pages say "No Tests Yet".** That does not make them untestable; it means you design the check yourself (§23.1 explains how). The column will go stale, and that is the reason to print it: recheck it.
+Many weaknesses map to more than one control. The **Control** column shows the first control MASWE lists, which also decides the block the weakness sits in.
 
-> **Trap:** a zero here is about OWASP's metadata, not always the topic. As of September 2026 some tests link to a neighbouring weakness rather than the one their subject matches. The iOS pasteboard tests (`MASTG-TEST-0276` to `0280`) and the Android overlay test (`0340`) link to MASWE-0036, so the clipboard (0030) and overlay (0039) pages list nothing. The WebView bridge tests (`0334`, `0376` to `0380`) link to MASWE-0034, so the native-bridge page (0033) lists nothing. Pick tests by topic (Part 7 cites them that way), and don't treat a zero as final.
+The **Tests** column is the number of current MASTG v2 tests that each weakness's page on `mas.owasp.org` lists, read on 24 September 2026 and unchanged on 20 October 2026. Brackets show placeholder tests, which have a title but no procedure; the main number doesn't count them. **35 of the 78 pages say "No Tests Yet".** (The v1.0.0 release announcement counted 36 at release; §3.1 has both figures.) That doesn't make them untestable; it means you design the check yourself (§23.1 explains how). The column will go stale, and that's the reason to print it: recheck it.
+
+> **Trap:** a zero here reflects OWASP's metadata, not always the topic. As of October 2026, some tests link to a neighboring weakness rather than the one their subject matches. The iOS pasteboard tests (`MASTG-TEST-0276` to `0280`) and the Android overlay test (`0340`) link to MASWE-0036, so the clipboard (0030) and overlay (0039) pages list nothing. The WebView bridge tests (`0334`, `0376` to `0380`) link to MASWE-0034, so the native-bridge page (0033) lists nothing. Pick tests by topic (Part 7 cites them that way), and don't treat a zero as final.
 
 ### Storage (MASVS-STORAGE)
 
@@ -175,7 +177,7 @@ The **Tests** column is the number of current MASTG v2 tests that each weakness'
 | 0016 | Cryptographic Key Access Not Restricted | CRYPTO-2 | 0 |
 | 0017 | Device Secure Lock Not Enforced | CRYPTO-2 | 4 |
 
-### Authentication and authorisation (MASVS-AUTH)
+### Authentication and authorization (MASVS-AUTH)
 
 | ID | Weakness | Control | Tests |
 |---|---|---|---|
@@ -268,23 +270,23 @@ The **Tests** column is the number of current MASTG v2 tests that each weakness'
 
 <https://mas.owasp.org/MASWE/>
 
-Every v1.0.0 weakness page has the same four sections: *Overview*, *Modes of Introduction*, *Impact* and *Mitigations*. **Modes of Introduction** is the section to read when you audit. It lists the concrete developer mistakes that cause the weakness, which is your checklist when no MASTG test exists yet.
+Every v1.0.0 weakness page has the same four sections: *Overview*, *Modes of Introduction*, *Impact*, and *Mitigations*. **Modes of Introduction** is the section to read when you audit. It lists the concrete developer mistakes that cause the weakness, which is your checklist when no MASTG test exists yet.
 
 ### Three that deserve special attention
 
-Engineers routinely miss these three.
+Engineers routinely miss these three *(reasoned)*.
 
-**MASWE-0022**: crypto keys not invalidated on new biometric enrolment. §11.3 is the scenario: someone who knows the device passcode enrols their own fingerprint and then unlocks your app's "biometric-protected" key. It now has tests on both platforms (`MASTG-TEST-0328` on Android; `0270` and `0271` on iOS), so there is no excuse for not checking it.
+**MASWE-0022**: crypto keys not invalidated on new biometric enrollment. §11.3 describes the scenario: someone who knows the device passcode enrolls their own fingerprint and then unlocks your app's "biometric-protected" key. It now has tests on both platforms (`MASTG-TEST-0328` on Android; `0270` and `0271` on iOS), so check it on every release.
 
-**MASWE-0024**: sensitive data accessible after session termination. Logout that clears the token but leaves cached responses, database rows and log entries on disk is a finding. It is extremely common, because "logout" is usually built as an auth concern rather than a data concern. It has **no MASTG test yet**: log out, then read the app's data directory (§22.3, experiment three) and see what is left.
+**MASWE-0024**: sensitive data accessible after session termination. A logout that clears the token but leaves cached responses, database rows, and log entries on disk is a finding. It's common, because teams usually build "logout" as an auth concern rather than a data concern *(reasoned)*. It has **no MASTG test yet**: log out, then read the app's data directory (§22.3, experiment three) and see what's left.
 
-**MASWE-0075**: non-reproducible builds. It is filed under Privacy, which surprises everyone; MASWE classifies it under `MASVS-PRIVACY-3` as a build-transparency weakness. It matters because nobody can verify what shipped if the build cannot be reproduced, which connects it directly to Part 6.
+**MASWE-0075**: non-reproducible builds. You might not expect it under Privacy, but MASWE classifies it under `MASVS-PRIVACY-3` as a build-transparency weakness. It matters because if nobody can rebuild your app from source and get the same binary, nobody can verify that what shipped matches the code that was reviewed. That connects it directly to Part 6.
 
 **Key takeaways**
 
 - MASWE v1.0.0 has 78 weaknesses, `MASWE-0001` to `MASWE-0078`, stable from August 2026. Treat any earlier MASWE ID as needing translation.
 - Almost half the weaknesses have no dedicated test. "No MASTG test" means "write your own check from Modes of Introduction", not "skip".
-- The weaknesses with no test are disproportionately the ones teams miss: session termination, step-up, key rotation, non-repudiation.
+- The weaknesses with no test are disproportionately the ones teams miss: session termination, step-up, key rotation, and non-repudiation *(reasoned)*.
 
 **Try it**
 
@@ -294,7 +296,7 @@ Engineers routinely miss these three.
 
 ## Chapter 28: The tests, techniques and practices you will use
 
-On 23 September 2026 the MASTG repository held 186 current v2 tests and 14 placeholder tests, 165 techniques, 66 best practices (plus 8 placeholders), 150 demos, 133 knowledge articles and 129 tools. All 92 v1 tests are deprecated. They run from `MASTG-TEST-0001` to `0093`; the repository has no `0074`.
+On 23 September 2026, the MASTG repository held 186 current v2 tests and 14 placeholder tests. Counting only current pages, it also held 165 techniques, 66 best practices (plus 8 placeholders), 150 demos, 133 knowledge articles, and 129 tools. The counts were the same on 20 October 2026. All 92 v1 tests are deprecated. They run from `MASTG-TEST-0001` to `0093`; the repository has no `0074`.
 
 Know the four page states before you cite anything:
 
@@ -305,7 +307,7 @@ Know the four page states before you cite anything:
 | **Placeholder** | "This test hasn't been created yet", plus a draft description | Only as "planned"; it gives you no procedure |
 | **Draft** | Work in progress | With care |
 
-> **Trap:** every MASTG test ID below 0200 is a v1 test and is now deprecated. If you inherited a checklist that cites `MASTG-TEST-00xx`, open each page: the deprecation banner links to the current tests. Keep the old ID in historic reports, but do not use it for new work.
+> **Trap:** every MASTG test ID below 0200 is a v1 test and is now deprecated. If you inherited a checklist that cites `MASTG-TEST-00xx`, open each page: the deprecation banner links to the current tests. Keep the old ID in historic reports, but don't use it for new work.
 
 ### Old ID to new, for the ones you are most likely to hold
 
@@ -333,7 +335,7 @@ Know the four page states before you cite anything:
 | 0081 App signing (iOS) | 0220 |
 | 0088 Testing Jailbreak Detection | 0240, 0241 |
 
-A few v1 tests have **no v2 replacement yet**, notably the two memory tests (`0011` Android, `0060` iOS) and `0031`, JavaScript execution in WebViews. Until a v2 test lands, work from MASVS-STORAGE-2 and the relevant weakness's Modes of Introduction.
+A few v1 tests have **no v2 replacement yet**, notably the two memory tests (`0011` Android, `0060` iOS) and `0031`, JavaScript execution in WebViews. Until a v2 test lands, work from the relevant weakness's Modes of Introduction; for the memory tests, start from MASVS-STORAGE-2.
 
 ### The current tests worth knowing by number
 
@@ -345,12 +347,12 @@ All IDs are `MASTG-TEST-xxxx`. Placeholders are marked *(placeholder)*.
 |---|---|
 | Storage | 0207 unencrypted data in the app sandbox at runtime · 0287 unencrypted data via `SharedPreferences` at runtime · 0200, 0201, 0202 external storage · 0203, 0231 logging at runtime and in code · 0216, 0262 backups · 0304, 0306 Room *(placeholder)* · 0305 DataStore *(placeholder)* |
 | Crypto | 0204, 0205 insecure random · 0208 insufficient key sizes · 0212 hardcoded keys in code · 0221, 0232, 0350 broken algorithms and modes · 0307, 0308 key pairs used for multiple purposes · 0309, 0310 reused IVs *(placeholder)* |
-| Auth | 0326 fallback to non-biometric · 0327 event-bound biometrics · 0328 enrolment-change detection · 0329 authentication without explicit user action · 0330 keys with extended validity duration · 0247, 0249 secure screen lock detection |
-| Network | 0217, 0218 insecure TLS protocols in code and on the wire · 0233, 0235, 0236 hardcoded HTTP URLs, cleartext configuration and cleartext on the wire · 0234, 0282, 0283 hostname verification and custom trust evaluation · 0242, 0243, 0244 missing and expired pins, and pinning in live traffic · 0284 SSL error handling in WebViews · 0285, 0286 trust in user-added CAs · 0295 GMS security provider not updated |
-| Platform | 0364, 0365, 0366 exported unprotected activities, services and receivers · 0355, 0356, 0357 content provider access and oversharing · 0372, 0374, 0375 implicit intents · 0381 insecure `PendingIntent` · 0393 unverified App Links · 0394 deep link input validation · 0250–0253 content provider and local file access in WebViews · 0334 native code exposed through WebViews · 0398, 0399, 0400 WebView URL loading and Safe Browsing · 0289, 0291 screenshots · 0315 notifications · 0340 overlay protections |
-| Code | 0222, 0223 PIC and stack canaries · 0245 platform version APIs · 0272, 0274 vulnerable dependencies, including via SBOM · 0337 unsafe deserialisation · 0339 SQL injection in content providers · 0382, 0392 enforced updating |
+| Auth | 0326 fallback to non-biometric · 0327 event-bound biometrics · 0328 enrollment-change detection · 0329 authentication without explicit user action · 0330 keys with extended validity duration · 0247, 0249 secure screen lock detection |
+| Network | 0217, 0218 insecure TLS protocols in code and on the wire · 0233, 0235, 0236 hardcoded HTTP URLs, cleartext configuration, and cleartext on the wire · 0234, 0282, 0283 hostname verification and custom trust evaluation · 0242, 0243, 0244 missing and expired pins, and pinning in live traffic · 0284 SSL error handling in WebViews · 0285, 0286 trust in user-added CAs · 0295 GMS security provider not updated |
+| Platform | 0364, 0365, 0366 exported unprotected activities, services, and receivers · 0355, 0356, 0357 content provider access and oversharing · 0372, 0374, 0375 implicit intents · 0381 insecure `PendingIntent` · 0393 unverified App Links · 0394 deep link input validation · 0250–0253 content provider and local file access in WebViews · 0334 native code exposed through WebViews · 0398, 0399, 0400 WebView URL loading and Safe Browsing · 0289, 0291 screenshots · 0315 notifications · 0340 overlay protections |
+| Code | 0222, 0223 PIC and stack canaries · 0245 platform version APIs · 0272, 0274 vulnerable dependencies, including via SBOM · 0337 unsafe deserialization · 0339 SQL injection in content providers · 0382, 0392 enforced updating |
 | Resilience | 0224, 0225 APK signature version and key size · 0226, 0227 debuggable app and WebView debugging · 0288 debug symbols in native code · 0324, 0325 root detection · 0338 storage integrity checks · 0341 hook detection · 0351 emulator detection · 0352, 0353 debugger detection · 0368, 0369 insufficient obfuscation of Java/Kotlin and native code |
-| Privacy | 0206 undeclared PII in captured traffic · 0254 dangerous permissions · 0255, 0256, 0257 permission minimisation, rationale and reset *(placeholder)* · 0318, 0319 SDK APIs that handle sensitive data |
+| Privacy | 0206 undeclared PII in captured traffic · 0254 dangerous permissions · 0255, 0256, 0257 permission minimization, rationale, and reset *(placeholder)* · 0318, 0319 SDK APIs that handle sensitive data |
 
 **iOS**
 
@@ -358,16 +360,16 @@ All IDs are `MASTG-TEST-xxxx`. Placeholders are marked *(placeholder)*.
 |---|---|
 | Storage | 0299 Data Protection classes · 0300, 0301, 0302 unencrypted data in private storage · 0303 shared storage · 0388 shared App Group containers · 0215, 0298 backup exclusion · 0296, 0297 logs · 0313, 0314 keyboard cache |
 | Crypto | 0209 key sizes · 0210, 0317 broken algorithms and modes · 0211 broken hashing · 0213, 0214 hardcoded keys in code and files · 0311, 0349 insecure random |
-| Auth | 0266, 0267 event-bound biometrics · 0268, 0269 fallback to non-biometric · 0270, 0271 enrolment-change detection · 0246, 0248 secure screen lock detection |
-| Network | 0321, 0322, 0323 cleartext · 0342, 0343, 0344, 0345, 0348 TLS in ATS, `URLSession`, Network.framework, third-party stacks and on the wire · 0385 missing pinning in ATS · 0396, 0397 `URLSessionDelegate` and `WKNavigationDelegate` bypassing certificate validation |
-| Platform | 0331, 0332, 0333 deprecated WebView APIs, attacker-controlled URIs, broad file read access · 0335, 0336 relaxed file origin policies · 0376–0380 native bridges and `evaluateJavaScript` · 0370, 0371 custom URL scheme input and source validation · 0395 universal link input validation · 0276–0280 pasteboard use, contents, clearing, expiry and device scope · 0290 screenshots · 0346, 0347 hiding sensitive input · 0389, 0390 custom keyboard restriction and full-access requests |
-| Code | 0228, 0229, 0230 PIC, stack canaries, ARC · 0273, 0275 vulnerable dependencies · 0383, 0384 enforced updating · 0386 unsafe deserialisation |
+| Auth | 0266, 0267 event-bound biometrics · 0268, 0269 fallback to non-biometric · 0270, 0271 enrollment-change detection · 0246, 0248 secure screen lock detection |
+| Network | 0321, 0322, 0323 cleartext · 0342, 0343, 0344, 0345, 0348 TLS in ATS, `URLSession`, Network.framework, third-party stacks, and on the wire · 0385 missing pinning in ATS · 0396, 0397 `URLSessionDelegate` and `WKNavigationDelegate` bypassing certificate validation |
+| Platform | 0331, 0332, 0333 deprecated WebView APIs, attacker-controlled URIs, broad file read access · 0335, 0336 relaxed file origin policies · 0376–0380 native bridges and `evaluateJavaScript` · 0370, 0371 custom URL scheme input and source validation · 0395 universal link input validation · 0276–0280 pasteboard use, contents, clearing, expiry, and device scope · 0290 screenshots · 0346, 0347 hiding sensitive input · 0389, 0390 custom keyboard restriction and full-access requests |
+| Code | 0228, 0229, 0230 PIC, stack canaries, ARC · 0273, 0275 vulnerable dependencies · 0383, 0384 enforced updating · 0386 unsafe deserialization |
 | Resilience | 0219 debugging symbols · 0220 outdated code signature format · 0240, 0241 jailbreak detection · 0261 debuggable entitlement · 0354 hook detection · 0358, 0359 implementation details in logs · 0367 virtual device detection · 0387 storage integrity · 0391 insufficient native obfuscation · 0401, 0402 debugger detection |
 | Privacy | 0281 undeclared tracking domains · 0360, 0361 purpose-string accuracy · 0362, 0363 unjustified entitlements |
 
 <https://mas.owasp.org/MASTG/tests/>
 
-The URL pattern is `https://mas.owasp.org/MASTG/tests/<platform>/<MASVS category>/<ID>/`, for example <https://mas.owasp.org/MASTG/tests/android/MASVS-NETWORK/MASTG-TEST-0286/>. The Area column above groups tests by topic, and a few live under a different MASVS category on the site: 0246–0249 under MASVS-RESILIENCE, and 0372, 0374, 0375 and 0398–0400 under MASVS-CODE. If a URL returns 404, use the site search.
+The URL pattern is `https://mas.owasp.org/MASTG/tests/<platform>/<MASVS category>/<ID>/`, for example <https://mas.owasp.org/MASTG/tests/android/MASVS-NETWORK/MASTG-TEST-0286/>. The Area column above groups tests by topic, and a few live under a different MASVS category on the site: 0246–0249 under MASVS-RESILIENCE, and 0372, 0374, 0375, and 0398–0400 under MASVS-CODE. If a URL returns 404, use the site search.
 
 ### The techniques, in learning order
 
@@ -375,15 +377,15 @@ A **technique** (`MASTG-TECH`) is a reusable how-to, such as "set up an intercep
 
 **Generic:** 0047 reverse engineering · 0048, 0049 static and dynamic analysis · 0050 binary analysis · 0051 tampering and runtime instrumentation · 0071 retrieving strings · 0119 intercepting HTTP by hooking network APIs at the application layer · 0120, 0121 intercepting HTTP and non-HTTP traffic with a proxy · 0122 passive eavesdropping · 0123, 0124 achieving a MITM position via ARP spoofing or a rogue access point.
 
-**Android:** 0001, 0002 device shell and host-device data transfer · 0003 obtaining and extracting apps · 0004 repackaging · 0007, 0008 exploring the package and the app data directories · 0009 monitoring system logs · 0011 setting up an interception proxy · 0012 bypassing certificate pinning · 0013–0018 reverse engineering, static and dynamic analysis, smali disassembly, Java decompilation, native disassembly · 0026 dynamic analysis on non-rooted devices · 0127, 0128 inspecting backups · 0151 analysing the network security configuration.
+**Android:** 0001, 0002 device shell and host-device data transfer · 0003 obtaining and extracting apps · 0004 repackaging · 0007, 0008 exploring the package and the app data directories · 0009 monitoring system logs · 0011 setting up an interception proxy · 0012 bypassing certificate pinning · 0013–0018 reverse engineering, static and dynamic analysis, smali disassembly, Java decompilation, native disassembly · 0026 dynamic analysis on non-rooted devices · 0127, 0128 inspecting backup data, and performing a backup and restore · 0151 analyzing the network security configuration.
 
-**iOS:** 0052, 0053 device shell and data transfer · 0054 obtaining and extracting apps · 0058, 0059 exploring the package and the app data directories · 0061 dumping Keychain data · 0063 setting up an interception proxy · 0064 bypassing certificate pinning · 0065–0067 reverse engineering, static and dynamic analysis · 0111 extracting entitlements · 0146 dynamic analysis on non-jailbroken devices · 0155 analysing the ATS configuration.
+**iOS:** 0052, 0053 device shell and data transfer · 0054 obtaining and extracting apps · 0058, 0059 exploring the package and the app data directories · 0061 dumping Keychain data · 0063 setting up an interception proxy · 0064 bypassing certificate pinning · 0065–0067 reverse engineering, static and dynamic analysis · 0111 extracting entitlements · 0146 dynamic analysis on non-jailbroken devices · 0155 analyzing the ATS configuration.
 
 <https://mas.owasp.org/MASTG/techniques/>
 
 ### The best practices worth putting in a PR template
 
-A **best practice** (`MASTG-BEST`) is the fix a failed test points to. Link it from the ticket so the developer gets the pattern, not just the problem. Placeholders are left out below; they have a title but no guidance yet.
+A **best practice** (`MASTG-BEST`) is the fix a failed test points to. Link it from the ticket so the developer gets the pattern, not only the problem. I've left placeholders out below; they have a title but no guidance yet.
 
 **Logging and backups:** 0002 remove logging code (Android) · 0022 disable verbose and debug logging in production (iOS) · 0004, 0023 exclude sensitive data from backups.
 
@@ -391,9 +393,9 @@ A **best practice** (`MASTG-BEST`) is the fix a failed test points to. Link it f
 
 **Signing and build:** 0006 up-to-date APK signing schemes · 0007 debuggable flag disabled · 0008 WebView debugging disabled · 0010 up-to-date `minSdkVersion`.
 
-**Screens and input:** 0014 preventing screenshots and screen recording (Android) · 0044 mask sensitive data in text fields · 0069 keep sensitive input on the system keyboard (iOS).
+**Screens and input:** 0014 preventing screenshots and screen recording (Android) · 0044 mask sensitive data in text fields (iOS) · 0069 keep sensitive input on the system keyboard (iOS).
 
-**Biometrics:** 0031 enforce strong biometrics for sensitive operations · 0036 use cryptographic binding · 0037 invalidate keys on enrolment changes · 0038 require explicit user confirmation.
+**Biometrics (Android):** 0031 enforce strong biometrics for sensitive operations · 0036 use cryptographic binding · 0037 invalidate keys on enrollment changes · 0038 require explicit user confirmation.
 
 **Resilience:** 0030 implement root detection · 0041 harden against runtime hooking · 0046, 0053 harden against emulation and virtual devices · 0047, 0074 anti-debugging checks · 0048 harden against reverse engineering tools (iOS).
 
@@ -401,17 +403,17 @@ A **best practice** (`MASTG-BEST`) is the fix a failed test points to. Link it f
 
 **WebViews:** 0011, 0033 securely load file content · 0012, 0013 disable JavaScript and content provider access where possible · 0028 WebView cache clean-up · 0035 prefer origin-scoped messaging over legacy bridges · 0032 migrate from `UIWebView` to `WKWebView` · 0058–0062 restrict native bridge functionality, render sensitive UI and text entry natively, use `WKContentWorld` isolation, use `WKScriptMessageHandlerWithReply`.
 
-**IPC and components:** 0039 prevent SQL injection in content providers · 0040 prevent overlay attacks · 0049, 0052 restrict access to exported providers and components · 0056, 0057 explicit intents internally, and sanitise external data · 0063 immutable `PendingIntent`s · 0045 limit exposure through iOS IPC channels · 0068 secure data sharing with app extensions · 0064 safe deserialisation APIs.
+**IPC and components:** 0039 prevent SQL injection in content providers · 0040 prevent overlay attacks · 0049, 0052 restrict access to exported providers and components · 0056, 0057 explicit intents internally, and sanitize external data · 0063 immutable `PendingIntent`s · 0045 limit exposure through iOS IPC channels · 0068 secure data sharing with app extensions · 0064 safe deserialization APIs.
 
-**Integrity and links:** 0065, 0066, 0067 storage and source-code integrity checks · 0070 verify App Links with `autoVerify` and Digital Asset Links · 0071, 0054, 0055, 0072 validate deep link, custom URL scheme and universal link parameters and sources.
+**Integrity and links:** 0065, 0066, 0067 storage and source-code integrity checks · 0070 verify App Links with `autoVerify` and Digital Asset Links · 0071, 0054, 0055, 0072 validate deep link, custom URL scheme, and universal link parameters and sources.
 
-**Hygiene:** 0021 proper error and exception handling · 0051 minimise iOS permissions and entitlements · 0003 comply with privacy regulations.
+**Hygiene:** 0021 proper error and exception handling · 0051 minimize iOS permissions and entitlements · 0003 comply with privacy regulations.
 
 <https://mas.owasp.org/MASTG/best-practices/>
 
 ### Demos and knowledge articles
 
-A **demo** (`MASTG-DEMO`) is a runnable sample: a small Kotlin or Swift snippet, a script, and the expected observation. Demos are built on the **MAS Test Apps**, two deliberately simple mirror-image apps for Android and iOS (§22.2), so you can reproduce the result yourself. `MASTG-DEMO-0106`, for example, hooks `Cipher.doFinal` with Frida to show plaintext leaving a crypto call; it demonstrates `MASTG-TEST-0341`.
+A **demo** (`MASTG-DEMO`) is a runnable sample: a small Kotlin or Swift snippet, a script, and the expected observation. Demos are built on the **MAS Test Apps**, two deliberately simple mirror-image apps for Android and iOS (§22.2), so you can reproduce the result yourself. `MASTG-DEMO-0106`, for example, hooks `Cipher.doFinal` with a Frida-based tool to show plaintext entering and leaving a crypto call. It's the failing case of `MASTG-TEST-0341` (runtime hook detection): the sample app has no hook detection, so the hook works.
 
 A **knowledge article** (`MASTG-KNOW`) is the platform background a test assumes, such as how the network security configuration works. When a test page cites one you don't understand, read it first.
 
@@ -419,7 +421,7 @@ A **knowledge article** (`MASTG-KNOW`) is the platform background a test assumes
 
 ### Platform security defaults by version
 
-Raising `targetSdk` or the iOS deployment target changes what the platform does for you, and sometimes breaks code that relied on the old behaviour. This is the book's scattered version facts in one place; each row points to where the change is explained. On Android most rows apply only when your app *targets* that API level; the ones marked "all apps" apply on that OS version whatever you target.
+Raising `targetSdk` or building with a newer iOS SDK changes what the platform does for you, and sometimes breaks code that relied on the old behavior. These tables collect the book's scattered version facts in one place; each row points to the section that explains the change. On Android most rows apply only when your app *targets* that API level; the ones marked "all apps" apply on that OS version whatever you target.
 
 **Android**
 
@@ -429,18 +431,18 @@ Raising `targetSdk` or the iOS deployment target changes what the platform does 
 | 28 (Android 9) | Cleartext HTTP blocked by default. StrongBox keys available on devices with the hardware | §7.1, §4.2 |
 | 29 (Android 10) | TLS 1.3 on by default, and only the focused app and the default keyboard can read the clipboard (both all apps) | §7.1, §6.5 |
 | 30 (Android 11) | WebView `allowFileAccess` defaults to `false` | §16.3 |
-| 31 (Android 12) | `android:exported` required on components with intent filters. `PendingIntent` must declare mutability. `dataExtractionRules` controls cloud backup and device transfer separately, and `allowBackup="false"` no longer stops device transfer. Touches through most untrusted overlays blocked (all apps) | §17.1, §17.3, §6.5, §17.6 |
+| 31 (Android 12) | `android:exported` required on components with intent filters. `PendingIntent` must declare mutability. `dataExtractionRules` controls cloud backup and device transfer separately, and on some manufacturers' devices `allowBackup="false"` no longer stops device transfer. Touches through most untrusted overlays blocked (all apps) | §17.1, §17.3, §6.5, §17.6 |
 | 33 (Android 13) | Clips can be marked sensitive (`EXTRA_IS_SENSITIVE`). `AD_ID` permission required for the advertising ID | §6.5, §18.2 |
 | 34 (Android 14) | Implicit intents reach only exported components. `registerReceiver` must declare export. Mutable implicit `PendingIntent` throws. `ZipFile` rejects `..` entries. Dynamically loaded code must be read-only. System CA store moves to an updatable APEX (all apps) | §17.2, §17.1, §17.3, Chapter 19 (Zip Slip), §19.5, §22.1 |
 | 35 (Android 15) | `PendingIntent` creators block background activity launches. Play requires 16 KB page support | §17.3, §19.6 |
-| 36 (Android 16) | Play's minimum target since 31 August 2026. Certificate Transparency available as opt-in. Default intent-redirection hardening (all apps) | §17.3, §7.3, §17.2 |
+| 36 (Android 16) | Play's minimum target for new apps and updates since 31 August 2026. Certificate Transparency available as opt-in. Default intent-redirection hardening (all apps) | §17.3, §7.3, §17.2 |
 | 37 (Android 17) | Certificate Transparency and Encrypted Client Hello on by default. `ACCESS_LOCAL_NETWORK` required. Native libraries loaded with `System.load()` must be read-only. `setContentCaptureEnabled(false)` no longer stops on-device intelligence capture | §7.1, §7.3, §18.1, §19.5, §20.2 |
 
 **iOS**
 
 | Version | What changes | Where |
 |---|---|---|
-| iOS 12 | `kSecAttrAccessibleAlways`, `UIWebView` and `NSKeyedUnarchiver.unarchiveObject(with:)` deprecated. Certificate Transparency enforced for publicly trusted certificates issued after 15 October 2018. TLS 1.3 on by default (12.2) | §4.4, §16.6, §19.4, §7.1 |
+| iOS 12 | `kSecAttrAccessibleAlways`, `UIWebView`, and `NSKeyedUnarchiver.unarchiveObject(with:)` deprecated. Certificate Transparency enforced (12.1.1) for publicly trusted certificates issued after 15 October 2018. TLS 1.3 on by default (12.2) | §4.4, §16.6, §19.4, §7.1 |
 | iOS 14 | Declarative pinning with `NSPinnedDomains`. Devices fetch the associated-domains file from Apple's CDN, not your server | §8.10, §17.5 |
 | iOS 16.4 | `WKWebView.isInspectable` defaults to `false` | §16.6 |
 | iOS 17 | Screen-capture state readable from the trait collection. 17.3: Stolen Device Protection. 17.4: `https` callbacks for `ASWebAuthenticationSession`; alternative app marketplaces in the EU | §6.6, §11.3, Chapter 0.3, §18.5 |
@@ -457,6 +459,6 @@ Raising `targetSdk` or the iOS deployment target changes what the platform does 
 **Try it**
 
 1. Take the last security report or checklist your team used. For every `MASTG-TEST` ID below 0100, open the page, confirm the deprecation banner, and write down the replacement IDs. Count how many of your "passes" were measured against a test that no longer exists.
-2. Open `MASTG-DEMO-0106` and read its `run.sh` and its expected output side by side. Name the MASVS control, the MASWE weakness and the MASTG test it serves.
+2. Open `MASTG-DEMO-0106` and read its `run.sh` and its expected output side by side. Name the MASVS control, the MASWE weakness, and the MASTG test it serves.
 
 ---

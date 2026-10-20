@@ -1,6 +1,6 @@
 ---
 part: 05
-last_verified: 2026-09-24
+last_verified: 2026-10-20
 volatility: medium
 recheck_because: "Tooling (Frida, objection, jadx), root-hiding modules and jailbreak coverage move every few months; canOpenURL is deprecated in iOS 27; MASTG-BEST-0029 is still a placeholder page"
 ---
@@ -9,9 +9,9 @@ recheck_because: "Tooling (Frida, objection, jadx), root-hiding modules and jail
 
 ## Chapter 13: How reverse engineering actually works
 
-Picture a finance app that ships a root check. On a rooted phone it shows "This device is not supported" and closes. The team is pleased with it. Then someone downloads the APK, opens it in a decompiler, searches for the dialog's text and finds the method that shows it. They write eight lines of Frida script that make the method return `false`. The whole thing takes less time than the team's stand-up. It is the same sequence that MASTG-DEMO-0107 and 0108 publish (§13.3) *(illustrative)*.
+Picture a finance app that ships a root check. On a rooted phone it shows "This device is not supported" and closes. The team is pleased with it. Then someone downloads the APK, opens it in a decompiler, searches for the dialog's text, and finds the method that shows it. They write eight lines of Frida script that make the method return `false`. The whole thing takes less time than the team's stand-up *(illustrative)*. MASTG-DEMO-0107 and 0108 publish the same detect-then-bypass sequence for a Frida check (§13.3).
 
-You cannot reason about anti-tampering until you have seen that sequence at the level of the actual commands. This chapter is the attacker's workflow. It is also your testing workflow, because Chapter 22 asks you to run it against your own app.
+You can't reason about anti-tampering until you've seen that sequence command by command. This chapter is the attacker's workflow. It's also your testing workflow, because Chapter 22 asks you to run it against your own app.
 
 Two terms first. **Static analysis** means reading the app without running it. **Dynamic analysis** means running it and interfering while it runs. Real work alternates between the two, and each pass tells you where to look in the next:
 
@@ -31,69 +31,69 @@ flowchart TB
 
 *Figure 16: The reverse-engineering loop: static and dynamic analysis feed each other*
 
-The MASTG identifiers below are numbered testing techniques (Chapter 3). Where Android and iOS differ, both are given.
+The `MASTG-TECH` identifiers below are the MASTG's numbered testing techniques (Chapter 3). Where Android and iOS differ, I give both.
 
 ### 13.1 Static analysis
 
-**Obtain the artefact** (MASTG-TECH-0003 Android, MASTG-TECH-0054 iOS). On Android, pull the APK from a device with `adb` or download it from the store with a third-party client. On iOS, an App Store IPA is encrypted with Apple's FairPlay DRM, so an attacker first obtains a decrypted copy on a jailbroken device. Frida-based dumpers such as bagbak read it from the running app; bagbak's author now marks it deprecated in favour of tools built on `mremap_encrypted`, which decrypt without launching the app at all. That extra step is a speed bump, not a wall.
+**Obtain the artifact** (MASTG-TECH-0003 Android, MASTG-TECH-0054 iOS). On Android, pull the APK from a device with `adb`, or download it from the store with a third-party client. On iOS, Apple encrypts every App Store IPA with its FairPlay DRM (digital rights management), so an attacker first obtains a decrypted copy on a jailbroken device. Frida-based dumpers such as bagbak read the decrypted code from the running app. bagbak's author now marks it deprecated in favor of tools built on `mremap_encrypted`, which decrypt without launching the app at all ([bagbak README](https://github.com/ChiChou/bagbak)). This extra step slows an attacker down; it doesn't stop them.
 
-**Explore the package.** The Android manifest, or the iOS `Info.plist` and entitlements, tells an attacker your components, permissions, exported activities, URL schemes, and whether you are debuggable. This is a map of your attack surface, and it is the first thing anyone reads.
+**Explore the package.** The Android manifest, or the iOS `Info.plist` and entitlements, tells an attacker your components, permissions, exported activities, URL schemes, and whether the app is debuggable. Together they map your attack surface, and they're the first thing anyone reads.
 
-**Retrieve strings** (MASTG-TECH-0071, both platforms). This is where hardcoded keys, internal hostnames and debug flags fall out. Thirty seconds of work; Chapter 1's Try it has the commands.
+**Retrieve strings** (MASTG-TECH-0071, both platforms). This step exposes hardcoded keys, internal hostnames, and debug flags. It takes about thirty seconds; Chapter 1's Try it has the commands.
 
-**Decompile.** On Android, **jadx** turns Dalvik bytecode (the compiled form of your Kotlin and Java) back into readable Java-like source (MASTG-TECH-0017). **apktool** instead disassembles it to **smali**, a human-editable assembly language for that bytecode, which is what you edit if you intend to repackage (MASTG-TECH-0016). On iOS there is no bytecode: the app is native ARM64 machine code in a **Mach-O** binary, so an attacker uses a disassembler and decompiler such as **Ghidra**, **Hopper**, **IDA** or **radare2** (MASTG-TECH-0068, MASTG-TECH-0069). Objective-C metadata still gives up class and method names generously, and Swift gives up more type metadata than most teams expect.
+**Decompile.** On Android, **jadx** turns Dalvik bytecode (the compiled form of your Kotlin and Java) back into readable Java-like source (MASTG-TECH-0017). **apktool** instead disassembles it to **smali**, a human-editable assembly language for that bytecode. Smali is what an attacker edits to repackage your app (MASTG-TECH-0016). On iOS there is no bytecode: the app is native ARM64 machine code in a **Mach-O** binary. An attacker reads it with a disassembler and decompiler such as **Ghidra**, **Hopper**, **IDA**, or **radare2** (MASTG-TECH-0068, MASTG-TECH-0069). Objective-C metadata still exposes class and method names, and Swift exposes more type metadata than most teams expect.
 
-**Read the security logic.** Root detection, pinning configuration, licence checks: all of it is now visible, and its structure tells the attacker exactly what to hook.
+**Read the security logic.** Root detection, pinning configuration, and license checks are all visible now. Their structure tells the attacker exactly what to hook, that is, which functions to intercept at runtime (§13.2).
 
-> **Trap:** "It's compiled Kotlin, nobody can read that." Kotlin compiles to the same bytecode as Java, and jadx reads it back into something close to your source. Assume anything in the APK is readable, including every string, every `BuildConfig` field and every URL.
+> **Trap:** "It's compiled Kotlin, nobody can read that." Kotlin compiles to the same bytecode as Java, and jadx reads it back into something close to your source. Assume anything in the APK is readable, including every string, every `BuildConfig` field, and every URL.
 
 ### 13.2 Dynamic analysis
 
-**Get a shell and reach the data directory** (MASTG-TECH-0001 and 0008 Android; MASTG-TECH-0052 and 0059 iOS). On Android, `/data/data/<package>/` holds your preferences, databases and caches. This is where "we encrypt sensitive data" gets verified or falsified in about a minute.
+**Get a shell and reach the data directory** (MASTG-TECH-0001 and 0008 Android; MASTG-TECH-0052 and 0059 iOS). On Android, `/data/data/<package>/` holds your preferences, databases, and caches. In about a minute, this step confirms or disproves the claim "we encrypt sensitive data".
 
-**Monitor logs** (MASTG-TECH-0009 Android, MASTG-TECH-0060 iOS). Release builds that still log are found here.
+**Monitor logs** (MASTG-TECH-0009 Android, MASTG-TECH-0060 iOS). This step catches release builds that still log.
 
-**Set up an interception proxy** (MASTG-TECH-0011 Android, MASTG-TECH-0063 iOS). Route the device's traffic through mitmproxy or Burp Suite, with the attacker's certificate authority installed on the device.
+**Set up an interception proxy** (MASTG-TECH-0011 Android, MASTG-TECH-0063 iOS). The attacker routes the device's traffic through mitmproxy or Burp Suite and installs their own certificate authority on the device, so the proxy can decrypt TLS traffic.
 
-**Bypass certificate pinning** (MASTG-TECH-0012 Android, MASTG-TECH-0064 iOS). This is the step that tells you whether your pinning is real. objection does it with one command for common implementations; a custom Frida script handles the rest. **Every engineer who has shipped pinning should have done this to their own app**, because until you have, you do not know whether your pinning survives contact.
+**Bypass certificate pinning** (MASTG-TECH-0012 Android, MASTG-TECH-0064 iOS). This step tells you whether your pinning is real. objection does it with one command for common implementations; a custom Frida script handles the rest. **If you've shipped pinning, run this against your own app.** Until you do, you don't know whether your pinning holds up against a real attempt.
 
 **Hook methods with Frida** (MASTG-TECH-0043 Android, MASTG-TECH-0095 iOS; MASTG-TECH-0051 covers the concept). **Hooking** means intercepting a function call at runtime so your code runs instead of, or around, the original. With Frida you can make your root check return `false`, fire your biometric success callback without a fingerprint, or log the arguments to `Cipher.doFinal` and watch your own plaintext go past.
 
-**Repackage** (MASTG-TECH-0004 Android). Decode with apktool, edit the smali, rebuild, re-sign with the attacker's own key, install. Hooking changes behaviour for one session on one device; repackaging makes the change permanent and distributable. This is the cloning attack, and it is why signature checks and attestation (Chapter 9) exist.
+**Repackage** (MASTG-TECH-0004 Android). The attacker decodes the APK with apktool, edits the smali, rebuilds, re-signs with their own key, and installs. Hooking changes behavior for one session on one device; repackaging makes the change permanent and distributable. This is the cloning attack, and it's why signature checks and attestation (Chapter 9) exist.
 
-> **In practice:** attackers do not always need a rooted device to hook one app. **Frida Gadget** is a library that can be injected into a repackaged APK or re-signed IPA, so the instrumentation travels inside the app itself (MASTG-TECH-0026 covers non-rooted Android). Root detection alone therefore does not tell you whether you are being hooked.
+> **In practice:** attackers don't always need a rooted device to hook one app. They can inject **Frida Gadget**, Frida packaged as a library, into a repackaged APK or re-signed IPA, so the instrumentation travels inside the app itself (MASTG-TECH-0026 covers non-rooted Android). Root detection alone therefore doesn't tell you whether someone is hooking your app.
 
 #### The tools an attacker uses, and what each one gives them
 
-You will see these names in every discussion of mobile security. Knowing what each actually does makes the rest of this chapter concrete.
+You'll see these names in every discussion of mobile security. Knowing what each one does makes the rest of this chapter concrete.
 
 | Tool | What it does | What it gives an attacker |
 |---|---|---|
 | **jadx** | Decompiles APK/DEX to readable Java-like source | Your logic, endpoints, and where your security decisions live |
 | **apktool** | Decodes an APK to smali and resources, and rebuilds it | Repackaging: change something, re-sign, redistribute |
 | **Frida** | Runtime instrumentation: hooks and replaces functions in a live process, on Android and iOS | The ability to change what your code does without changing the file |
-| **objection** | Frida-powered toolkit with prebuilt commands | Storage inspection, pinning and root/jailbreak-detection bypass without writing a script |
+| **objection** | Frida-powered toolkit with prebuilt commands | Storage inspection, pinning bypass, and root or jailbreak-detection bypass without writing a script |
 | **LSPosed** and forks such as **Vector** (Xposed API) | System-wide Java hooking framework, loaded through Zygisk (Magisk's mechanism for injecting code into every app process) on rooted Android | Persistent modification of your app on every launch |
 | **ElleKit** (a replacement for Cydia Substrate, the original iOS tweak-injection framework) | Tweak-injection and hooking library used by current rootless jailbreaks (jailbreaks that leave the system volume read-only; §14.4) | The same capability on jailbroken iOS |
 | **Ghidra / IDA / Hopper / radare2** | Disassemblers and decompilers for native code and Mach-O binaries | Your native code, including logic you moved there for protection |
 | **mitmproxy / Burp Suite** | Intercepting proxies | All your traffic, in cleartext, on a device they control |
 | **`strings`** | Prints printable strings in a binary | Every constant you embedded, in about thirty seconds |
 
-Two observations worth carrying. Nearly all of these are **free and documented** (IDA and Hopper are commercial but cheap next to any fraud payout), so none of your protection can assume scarcity of tooling. And you should be running them against your own app (Chapter 22): an attacker's toolkit and your test toolkit are the same toolkit.
+Keep two things in mind. First, nearly all of these are **free and documented** (IDA Pro and Hopper are commercial, but cheap next to any fraud payout), so don't design any protection on the assumption that attackers lack tools. Second, run them against your own app (Chapter 22): the attacker's toolkit and your test toolkit are the same.
 
 > **In practice:** pin your tool versions in your test lab. Frida 17 (May 2025) moved its language bridges out of the core runtime and removed several long-standing `Module` APIs, so many scripts written for Frida 16 fail until updated (§22.1).
 
 ### 13.3 The three demos that make the argument
 
-The MASTG ships runnable demos, and one sequence is worth more than any amount of prose on this topic. Read them in order:
+The MASTG ships runnable demos, and one sequence of three makes this chapter's argument better than any prose can. Read them in order:
 
 **MASTG-DEMO-0106** — *Extracting Sensitive Data from Cipher.doFinal via Frida Hooking.* The attack works.
 
-**MASTG-DEMO-0107** — *Detecting Frida hooks and terminating the application on response.* The defence works.
+**MASTG-DEMO-0107** — *Detecting Frida hooks and terminating the application on response.* The defense works.
 
-**MASTG-DEMO-0108** — *Bypassing Frida Detection in /proc/self/maps to Extract Sensitive Data.* The defence is defeated.
+**MASTG-DEMO-0108** — *Bypassing Frida Detection in /proc/self/maps to Extract Sensitive Data.* The defense is defeated.
 
-Protect, detect, bypass. That progression, published by the standard itself, is the strongest available argument for the position in the next chapter. Two more demos make the same point about obfuscation: **MASTG-DEMO-0132** (root detection in the Java/Kotlin layer protected only by identifier renaming) and **MASTG-DEMO-0133** (root detection in the native layer with insufficient obfuscation).
+Attack, detect, bypass. The standard itself publishes that progression, and it's the strongest argument I know for the position Chapter 14 takes: detect and report, don't block (§14.2). Two more demos make the same point about obfuscation: **MASTG-DEMO-0132** (root detection in the Java/Kotlin layer protected only by identifier renaming) and **MASTG-DEMO-0133** (root detection in the native layer with insufficient obfuscation).
 
 - <https://mas.owasp.org/MASTG/techniques/>
 - <https://mas.owasp.org/MASTG/demos/>
@@ -104,39 +104,39 @@ Protect, detect, bypass. That progression, published by the standard itself, is 
 - Static and dynamic analysis are one loop: reading tells you what to hook, hooking tells you what to read next.
 - Everything in your APK or IPA is readable, including compiled Kotlin and Swift. Plan on that basis.
 - Hooking needs neither your source nor, with Frida Gadget, a rooted device.
-- The MASTG's own demos show a local defence being built and then bypassed. Design for that outcome.
+- The MASTG's own demos show a local defense being built and then bypassed. Design for that outcome.
 
 **Try it**
 
 1. Install **Android UnCrackable L1** (MASTG-APP-0003, from <https://mas.owasp.org/crackmes/>) on an emulator. Open it in jadx, find the root check and the secret-verification logic, and write down how long it took.
-2. Run `strings` on your own release APK or IPA and list anything you would not want a stranger to read. Chapter 1's Try it gives the exact commands.
+2. Run `strings` on your own release APK or IPA and list anything you wouldn't want a stranger to read. Chapter 1's Try it gives the exact commands.
 3. On a rooted emulator, use Frida or objection to bypass UnCrackable L1's root check at runtime, without modifying the APK. Note how little code the bypass needs.
 
 ---
 
 ## Chapter 14: Obfuscation and tamper detection — the honest chapter
 
-This is where security writing usually oversells, so let me be direct: **everything in this chapter can be bypassed by a competent attacker with device access.** You are buying time and raising cost, not achieving prevention.
+This is where security writing usually oversells, so let me be direct: **a competent attacker with access to the device can bypass everything in this chapter.** You're buying time and raising the attacker's cost, not preventing the attack.
 
-That is not an argument against doing it. Time and cost are real currency against the opportunist and the cloner (§1.3). Against the fraudster, who uses your app as intended, these controls matter only as inputs to a risk score (§12.5). It is an argument against *believing your own marketing*, and against designing as though these controls hold.
+That isn't an argument against these controls. It's an argument against *believing your own marketing*, and against designing as though the controls hold. Time and cost do deter the opportunist and the cloner (§1.3). Against the fraudster, who uses your app as intended, these controls matter only as inputs to a risk score (§12.5).
 
-Two definitions. **Obfuscation** transforms your code so it is harder for a person to read (renaming, string encryption, control-flow flattening) without changing what it does. **Tamper detection** is code that notices the environment or the app has been modified (rooted device, hooking framework, debugger, re-signed APK). The MASVS groups both under **MASVS-RESILIENCE** (Chapter 26): RESILIENCE-1 platform integrity, RESILIENCE-2 anti-tampering, RESILIENCE-3 anti-static analysis, RESILIENCE-4 anti-dynamic analysis.
+Two definitions. **Obfuscation** transforms your code so it's harder for a person to read, without changing what it does. Common techniques are renaming, string encryption, and control-flow flattening (rewriting a function's branches into one dispatch loop, so its logic no longer reads top to bottom). **Tamper detection** is code that notices the environment or the app has been modified: a rooted device, a hooking framework, a debugger, or a re-signed APK. The MASVS groups both under **MASVS-RESILIENCE** (Chapter 26): MASVS-RESILIENCE-1, platform integrity; MASVS-RESILIENCE-2, anti-tampering; MASVS-RESILIENCE-3, anti-static analysis; and MASVS-RESILIENCE-4, anti-dynamic analysis.
 
 ### 14.1 The cheap things, which you should simply do
 
 Start here. Every item below costs close to nothing and removes the easiest tier of attacker.
 
-**Enable R8 with minification and resource shrinking** on Android; **strip symbols** on iOS (§15.8 has the settings). R8 is Android's code shrinker and optimiser, and has run in "full mode" (its most aggressive setting) by default since Android Gradle Plugin 8.0. Renaming alone will not stop a determined attacker, but it removes every free hint.
+**Enable R8 with minification and resource shrinking** on Android; **strip symbols** on iOS (§15.8 has the settings). R8 is Android's code shrinker and optimizer. Minification removes unused code and renames what's left to short, meaningless names. R8 has run in "full mode" (its most aggressive setting) by default since Android Gradle Plugin 8.0. Renaming alone won't stop a determined attacker, but it removes the free hints that meaningful class and method names give away.
 
-**Remove all logging from release builds**, and verify by inspecting the artefact rather than trusting the build flag (§6.6 has the code; MASTG-BEST-0002, *Remove Logging Code*, for Android; MASTG-BEST-0022, *Disable Verbose and Debug Logging in Production Builds*, for iOS).
+**Remove all logging from release builds**, and verify by inspecting the artifact rather than trusting the build flag (§6.6 has the code; MASTG-BEST-0002, *Remove Logging Code*, for Android; MASTG-BEST-0022, *Disable Verbose and Debug Logging in Production Builds*, for iOS).
 
-**Ensure `debuggable` is false** and no debug configuration shipped (MASTG-BEST-0007). A debuggable production build is not a hardening gap, it is an open door: anyone with the phone can attach a debugger, and `run-as` gives a shell with your app's identity and full access to its private files.
+**Ensure `debuggable` is false** and that no debug configuration shipped (MASTG-BEST-0007). A debuggable production build isn't a small hardening gap; it hands over the app. Anyone who can connect the phone to `adb` can attach a debugger, and `run-as` gives them a shell with your app's identity and full access to its private files.
 
-**Disable WebView debugging** in release (MASTG-BEST-0008).
+**Disable WebView debugging** in release (MASTG-BEST-0008). With it enabled, anyone with `adb` access can inspect your WebViews and change their content and traffic through Chrome DevTools.
 
 **Prevent screenshots on sensitive screens**, and keep secrets off the clipboard (§6.6).
 
-**Use up-to-date signing schemes** (MASTG-BEST-0006) and a current `minSdkVersion` (MASTG-BEST-0010). Old signature schemes and old API levels both reopen closed attack classes.
+**Use up-to-date signing schemes** (MASTG-BEST-0006) and a current `minSdkVersion` (MASTG-BEST-0010). Old signature schemes and old API levels both reopen classes of attack that newer versions closed. For example, on devices without the December 2017 security patch, Janus ([CVE-2017-13156](https://source.android.com/docs/security/bulletin/2017-12-01)) lets an attacker change an app's code without invalidating its signature. It affects any APK signed only with the v1 (JAR) scheme, and on Android 5.x and 6.x, which don't check v2 signatures, every APK. MASTG-BEST-0006 asks for v2 or v3.
 
 **Set sensible session timeouts**, shorter for financial flows (§14.5).
 
@@ -144,7 +144,7 @@ None of this is clever. All of it is worth more than most clever things.
 
 ### 14.2 Detection: report, never block
 
-Detect what you can: root and jailbreak indicators, hooking frameworks (Frida, LSPosed, ElleKit and friends), debuggers, emulators and virtual devices, repackaging via your own signature check, and storage or code integrity failures.
+Detect what you can: root and jailbreak indicators, hooking frameworks (Frida, LSPosed, ElleKit, and similar tools), debuggers, emulators and virtual devices, repackaging (through your own signature check), and failures of storage or code integrity.
 
 Then **send those findings to your backend as risk inputs, and let the session continue.**
 
@@ -154,7 +154,7 @@ sequenceDiagram
     participant API as Your backend
     Note over App: Collect signals (root, hooks, debugger, signature)
     App->>API: Signals + integrity token, bound to this request
-    Note over API: Score risk with account, device and velocity history
+    Note over API: Score risk with account, device, and velocity history
     alt Low risk
         API-->>App: Proceed
     else Elevated risk
@@ -164,51 +164,51 @@ sequenceDiagram
 
 *Figure 17: Detect, report, and let the backend decide*
 
-Three reasons, and they compound.
+Three reasons support this, and they reinforce each other.
 
-**Local blocks are trivially removed.** The attacker is already running your code under instrumentation with the ability to hook any method. Your `if (isRooted()) exit()` is one hook away from `if (false) exit()`. You have built a speed bump and paid for a wall. MASTG-DEMO-0108 is this argument, demonstrated.
+**Local blocks are easy to remove.** The attacker is already running your code under instrumentation and can hook any method. Your `if (isRooted()) exit()` is one hook away from `if (false) exit()`. You've paid for prevention and got a short delay. MASTG-DEMO-0108 demonstrates exactly this.
 
-**You generate false positives against real people.** Developers, power users, users of custom ROMs in markets where that is normal, users of legitimate accessibility tooling. A hard local block converts these into support tickets and one-star reviews, for no security gain.
+**You generate false positives against real people.** Root and hooking checks also fire for developers, power users, people on custom ROMs (third-party builds of Android) in markets where those are common, and users of legitimate accessibility tools. A hard local block turns these people into support tickets and one-star reviews, for no security gain.
 
 **You destroy your own intelligence.** A backend that receives "hooking framework detected on this session" can require step-up authentication, cap transaction limits, flag the account, and correlate across sessions to find the actual attacker (§12.5 shows the scoring). An app that shows a "device not supported" dialog has taught the attacker exactly which check to remove next, and told you nothing.
 
-The MASTG has reserved **MASTG-BEST-0029**, *Implementing Resilience and RASP Signals*, for this practice; at the time of writing the page is still a placeholder, so cite it for its title rather than its content. **RASP** (runtime application self-protection) is the vendor term for detection code that runs inside the app. "Signals" is the operative word.
+The MASTG has reserved **MASTG-BEST-0029**, *Implementing Resilience and RASP Signals*, for this practice. As of October 2026 the page is still a placeholder, so cite it for its title rather than its content. **RASP** (runtime application self-protection) is the vendor term for detection code that runs inside the app. "Signals" is the operative word.
 
-> **Why it matters:** a signal the attacker can suppress is only useful if its *absence* is also suspicious. That is why the report must travel with something the attacker cannot forge on the device, such as a Play Integrity or App Attest result bound to the same request (Chapters 9 and 10). An empty signal list from a device that fails attestation is itself a signal.
+> **Why it matters:** a signal the attacker can suppress is only useful if its *absence* is also suspicious. That's why the report must travel with something the attacker can't forge on the device, such as a Play Integrity or App Attest result bound to the same request (Chapters 9 and 10). An empty signal list from a device that fails attestation is itself a signal.
 
-The position is not unanimous *(contested)*. RASP vendors and some payment-scheme and banking rulebooks expect a local response, such as refusing to start a card-emulation or offline-payment flow, on the grounds that no backend is involved at that moment to make the call. That is a fair argument for **features that act offline or hold secrets the backend cannot revoke**. It is a weak argument for an ordinary online app, where the backend sees every request anyway. If you must respond locally, degrade the specific risky feature, keep the rest of the app working, and still report.
+The position isn't unanimous *(contested)*. RASP vendors and some payment-scheme and banking rulebooks expect a local response, such as refusing to start a card-emulation or offline-payment flow. Their reasoning is that no backend is involved at that moment to make the call. That's a fair argument for **features that act offline or hold secrets the backend can't revoke**. It's a weak argument for an ordinary online app, where the backend sees every request anyway. If you must respond locally, degrade the specific risky feature, keep the rest of the app working, and still report.
 
 ### 14.3 Where obfuscation genuinely helps
 
-Two places, and it is worth knowing them so you spend effort well.
+Obfuscation helps in two places. Know them, so you spend your effort where it pays.
 
-**Raising the floor.** Against automated tooling and the opportunist, obfuscation plus resource shrinking is often enough to make your app not worth the trouble relative to the next one.
+**Raising the floor.** Against automated tooling and the opportunist, obfuscation plus resource shrinking often makes your app more trouble than the next target, so they move on.
 
-**Protecting detection logic itself.** If your root detection is legible, it is removable. MASTG-DEMO-0132 shows detection logic in the Java/Kotlin layer defeated when protected only by identifier renaming; MASTG-DEMO-0133 shows the same in native code with insufficient obfuscation. The matching tests are **MASTG-TEST-0368** (*Insufficient Obfuscation of Security-Relevant Java/Kotlin Code*) and **MASTG-TEST-0369** (*Insufficient Obfuscation of Security-Relevant Native Code*). Moving security-critical logic to native code raises the cost of removing it only if the native code is also obfuscated; plain C compiled with symbols is easier to read in Ghidra than you would like.
+**Protecting detection logic itself.** If your root detection is legible, it's removable. MASTG-DEMO-0132 shows detection logic in the Java/Kotlin layer defeated when protected only by identifier renaming; MASTG-DEMO-0133 shows the same in native code with insufficient obfuscation. The matching tests are **MASTG-TEST-0368** (*Insufficient Obfuscation of Security-Relevant Java/Kotlin Code*) and **MASTG-TEST-0369** (*Insufficient Obfuscation of Security-Relevant Native Code*). Moving security-critical logic to native code raises the cost of removing it only if you obfuscate the native code too. Plain C compiled with symbols is easier to read in Ghidra than you'd like.
 
-What obfuscation does not do is protect a secret. An obfuscated key is a key. Chapter 1's principle still governs: make secrets useless if found (§1.2).
+What obfuscation doesn't do is protect a secret. An obfuscated key is a key. Chapter 1's principle still governs: make secrets useless if found (§1.2).
 
-> **Trap:** R8 renames classes but not the strings inside them. A class called `a.b.c` that contains `"/system/xbin/su"` and `"com.topjohnwu.magisk"` announces itself to anyone who searches the decompiled output for `su`. Renaming hides *where* the check is only until someone searches for *what* it checks.
+> **Trap:** R8 renames classes but not the strings inside them. A class called `a.b.c` that contains `"/system/xbin/su"` and `"com.topjohnwu.magisk"` gives itself away to anyone who searches the decompiled output for `su`. Renaming hides *where* the check is only until someone searches for *what* it checks.
 
 ### 14.4 Detection, in code
 
-§14.2 argues for detecting and reporting rather than blocking. This section is what the detecting part looks like, so the advice is actionable rather than abstract.
+§14.2 argues for detecting and reporting rather than blocking. This section shows what the detecting part looks like in code.
 
-**The shape to aim for on both platforms** *(reasoned)*: collect named signals, return them as data, send them to your backend. No branching on the result locally.
+**The shape to aim for on both platforms** *(reasoned)*: collect named signals, return them as data, and send them to your backend. Don't branch on the result locally.
 
-Before the code, know what each check is up against. Modern root and jailbreak tooling is built specifically to hide from checks like these, and it is maintained: current jailbreaks are rootless (§22.1 lists which versions they cover).
+Before the code, know what each check is up against. Modern root and jailbreak tooling is built specifically to hide from checks like these, and its developers keep updating it. Current jailbreaks, for example, are rootless (§22.1 lists which versions they cover).
 
 | Signal | What still catches it | What defeats it |
 |---|---|---|
-| `su` binary on disk | Old one-click roots, careless setups | **Magisk**, **KernelSU** and **APatch** are "systemless": they do not modify `/system`, and their hiding features (Magisk's DenyList, plus modules such as **Shamiko**) unmount their files from processes you choose, including yours |
+| `su` binary on disk | Old one-click roots, careless setups | **Magisk**, **KernelSU**, and **APatch** are "systemless": they don't modify `/system`, and their hiding features (Magisk's DenyList, plus modules such as **Shamiko**) unmount their files from processes you choose, including yours |
 | Root-manager app installed | Default installs | Magisk can re-package its own app under a random name; Android 11+ package visibility hides other apps unless you declare them in `<queries>` |
 | `Build.TAGS` contains `test-keys` | Some custom ROMs and emulators | Rooted devices running a release-signed build, which is almost all of them *(reasoned)* |
-| System partition writable | Very old roots | Systemless root plus dm-verity; the check is close to meaningless in 2026 *(reasoned)* |
-| Frida artefacts: `frida-agent` in `/proc/self/maps`, threads named `gum-js-loop` or `gdbus`, port 27042 | Unmodified Frida | Renamed or custom-built Frida; MASTG-DEMO-0108 bypasses the maps check |
+| System partition writable | Very old roots | Systemless root plus dm-verity (the kernel's verification of the system partition against a signed hash); the check is close to meaningless in 2026 *(reasoned)* |
+| Frida artifacts: `frida-agent` in `/proc/self/maps`, threads named `gum-js-loop` or `gdbus`, port 27042 | Unmodified Frida | Renamed or custom-built Frida; MASTG-DEMO-0108 bypasses the maps check |
 | Jailbreak files at `/Applications/Cydia.app`, `/bin/bash` | Old rootful jailbreaks | **Rootless** jailbreaks (Dopamine; palera1n in rootless mode) install under `/var/jb` and use Sileo or Zebra, not Cydia |
-| Hardware-backed attestation (Play Integrity, key attestation, App Attest) | Almost everything above, because the verdict is signed off-device | Leaked keyboxes (served by tools such as TrickyStore or TEESimulator), relayed attestation chains, zero-days; see Chapters 5, 9 and 10 for the limits |
+| Hardware-backed attestation (Play Integrity, key attestation, App Attest) | Almost everything above, because the verdict is signed off-device | Leaked keyboxes (served by tools such as TrickyStore or TEESimulator), relayed attestation chains, and zero-days; see Chapters 5, 9, and 10 for the limits |
 
-Read the last row twice. Local file checks are the weakest signals you have, and the attestation APIs in Part 4 are the strongest. Ship both, weight them accordingly on the server.
+Look hard at the last row. Local file checks are the weakest signals you have, and the attestation APIs in Part 4 are the strongest. Ship both, and weight them accordingly on the server.
 
 #### Android: root indicators
 
@@ -255,7 +255,7 @@ class RootSignals(private val context: Context) {
 }
 ```
 
-Declare the package names you query, or `isInstalled` returns `false` on every Android 11+ device and you will conclude, wrongly, that nobody is rooted:
+Declare the package names you query, or `isInstalled` returns `false` on every Android 11+ device, and you'll conclude, wrongly, that nobody is rooted:
 
 ```xml
 <!-- AndroidManifest.xml -->
@@ -266,7 +266,7 @@ Declare the package names you query, or `isInstalled` returns `false` on every A
 </queries>
 ```
 
-> **Trap:** do not reach for `QUERY_ALL_PACKAGES` to make this easier. Google Play restricts that permission to apps whose core function needs it, and root detection does not qualify.
+> **Trap:** don't reach for `QUERY_ALL_PACKAGES` to make this easier. Google Play restricts that permission to apps whose core function needs it, such as device search, antivirus, file managers, and browsers, and root detection isn't one of them. Play offers a temporary exception to dedicated banking and digital-wallet apps, for security purposes only ([Play policy](https://support.google.com/googleplay/android-developer/answer/10158779)). Even if you qualify, the `<queries>` list above is enough for these checks.
 
 #### Android: debugger, instrumentation and emulator
 
@@ -313,7 +313,7 @@ class RuntimeSignals(private val context: Context) {
 }
 ```
 
-Know what each check sees. `Debug.isDebuggerConnected()` covers the Java debugger (JDWP) that Android Studio uses. `TracerPid` covers native tracers, which attach with `ptrace`. Neither is a Frida detector: the MASTG's list of Frida indicators (MASTG-KNOW-0030) does not include `TracerPid`, and Frida's design does not keep its injector attached once the agent is loaded *(reasoned)*. The `/proc/self/maps` check is what MASTG-DEMO-0107 uses, and MASTG-DEMO-0108 shows it being bypassed. Treat every line here as a weak signal.
+Know what each check sees. `Debug.isDebuggerConnected()` covers the Java debugger (JDWP, the Java Debug Wire Protocol) that Android Studio uses. `TracerPid` covers native tracers, which attach with the `ptrace` system call. Neither is a Frida detector: the MASTG's list of Frida indicators (MASTG-KNOW-0030) doesn't include `TracerPid`, and Frida's design doesn't keep its injector attached once the agent is loaded *(reasoned)*. The `/proc/self/maps` check is what MASTG-DEMO-0107 uses, and MASTG-DEMO-0108 shows it being bypassed. Treat every line here as a weak signal.
 
 #### iOS: jailbreak and hooking indicators
 
@@ -378,9 +378,13 @@ enum JailbreakSignals {
 }
 ```
 
-Two notes on this sample. `canOpenURL` is deprecated in iOS 27, and apps linked against the iOS 27 SDK may declare at most 25 schemes in `LSApplicationQueriesSchemes`, down from 50 ([Apple](https://developer.apple.com/documentation/uikit/uiapplication/canopenurl(_:))). Expect the scheme check to fade; the file and image checks do not depend on it. And older samples also call `fork()`, reasoning that a sandboxed app is not allowed to create processes. It is left out on purpose: `fork` is unavailable in Swift, so those samples reach it through `dlsym`, and because rootless jailbreaks keep the app sandbox in place, the check is likely to miss exactly the jailbreaks in use today *(reasoned)*. The same caveat applies to `canWriteOutsideSandbox()`, which stays in only because it is cheap and still catches rootful jailbreaks; weight it low *(reasoned)*.
+Three notes on this sample:
 
-> **Trap:** most jailbreak-detection snippets online still check only rootful paths such as `/Applications/Cydia.app`. Current jailbreaks are rootless by default and put everything under `/var/jb`. A detector that has not been updated reports a clean device on exactly the jailbreaks people use today.
+- **The scheme check is fading.** `canOpenURL` is deprecated in iOS 27, and apps linked against the iOS 27 SDK may declare at most 25 schemes in `LSApplicationQueriesSchemes`, down from 50 ([Apple](https://developer.apple.com/documentation/uikit/uiapplication/canopenurl(_:))). The file and image checks don't depend on it.
+- **`fork()` is left out on purpose.** Older samples call it, reasoning that a sandboxed app isn't allowed to create processes. `fork` is unavailable in Swift, so those samples reach it through `dlsym`. Rootless jailbreaks keep the app sandbox in place, so the check is likely to miss exactly the jailbreaks in use today *(reasoned)*.
+- **Weight `canWriteOutsideSandbox()` low.** The same caveat applies to it. It stays in only because it's cheap and still catches rootful jailbreaks *(reasoned)*.
+
+> **Trap:** most jailbreak-detection snippets online still check only rootful paths such as `/Applications/Cydia.app`. Current jailbreaks are rootless by default and put everything under `/var/jb`. A detector that hasn't been updated reports a clean device on exactly the jailbreaks people use today. Even `/var/jb` isn't final: "roothide" builds of Dopamine randomize that path to hide it ([The Apple Wiki](https://theapplewiki.com/wiki/Dopamine-roothide)) *(reported)*.
 
 #### Reporting, which is the whole point
 
@@ -405,11 +409,12 @@ suspend fun reportSecuritySignals(
     try {
         val rootSignals = root.collect()
         val runtimeSignals = runtime.collect()
+        val certSha256 = currentSigningCertSha256()
         val report = SecurityReport(
             rootSignals       = rootSignals,
             runtimeSignals    = runtimeSignals,
-            signingCertSha256 = currentSigningCertSha256(),
-            integrityToken    = integrity.tokenFor(requestHashOf(rootSignals, runtimeSignals)),
+            signingCertSha256 = certSha256,
+            integrityToken    = integrity.tokenFor(requestHashOf(rootSignals, runtimeSignals, certSha256)),
         )
         api.reportSignals(report)
     } catch (e: CancellationException) {
@@ -420,19 +425,23 @@ suspend fun reportSecuritySignals(
 }
 ```
 
-`SecurityApi`, `IntegrityTokenSource`, `currentSigningCertSha256()` and `requestHashOf()` are yours to supply. Chapter 9 shows how to request a Play Integrity token with a request hash, which is what binds the token to *these* signals so they cannot be swapped in transit. Your signature check compares the APK's signing-certificate digest against the value you expect.
+You supply `SecurityApi`, `IntegrityTokenSource`, `currentSigningCertSha256()`, and `requestHashOf()`. Chapter 9 shows how to request a Play Integrity token with a request hash. The hash is what binds the token to *these* signals and this certificate digest, so nobody can swap them in transit. `currentSigningCertSha256()` reads the APK's signing-certificate digest, and your backend compares it with the value you expect.
 
-Three rules for this code. **Send, never branch**: the backend decides (§14.2). **Fail silently**: a detection report that crashes the app or blocks a flow has converted a security feature into an outage. Silently does not mean catching everything, though: `runCatching` in a `suspend` function also swallows `CancellationException`, so a report still in flight when the user leaves the screen would not cancel, which is why the sample rethrows it. And **let R8 rename your detection classes**: never add keep rules for them (§15.8), because a class still called `RootSignals` in release is a search term handed to the attacker.
+Follow three rules for this code:
+
+1. **Send, never branch.** The backend decides (§14.2).
+2. **Fail silently.** A detection report that crashes the app or blocks a flow has turned a security feature into an outage. Silently doesn't mean catching everything, though. `runCatching` in a `suspend` function also swallows `CancellationException`, so a report still in flight when the user leaves the screen wouldn't cancel. That's why the sample uses `try`/`catch` instead and rethrows it.
+3. **Let R8 rename your detection classes.** Never add keep rules for them (§15.8). A class still called `RootSignals` in release hands the attacker a search term.
 
 #### Verify it
 
-Detection code has two failure modes, and you should test for both.
+Detection code has two failure modes. Test for both.
 
-**False negatives.** Run the app on a rooted device or emulator (a Google APIs emulator image without Play Store allows `adb root`; the community `rootAVD` script installs Magisk on one) and confirm your signals actually fire. **Pass:** the backend receives a non-empty signal list. **Fail:** an empty list from an obviously rooted device, which means the detection is not running, not that the device is clean. Then enable Magisk's DenyList for your app and repeat, so you know which signals survive root hiding.
+**False negatives.** Run the app on a rooted device or emulator and confirm your signals fire. A Google APIs emulator image without Play Store allows `adb root`, and the community `rootAVD` script installs Magisk on one. **Pass:** the backend receives a non-empty signal list. **Fail:** an empty list from a device you know is rooted. That means the detection isn't running, not that the device is clean. Then enable Magisk's DenyList for your app and repeat, so you know which signals survive root hiding.
 
-**False positives, which matter more.** Run on a clean, stock, unrooted device. **Pass:** no signals. **Fail:** any signal at all, which means you are about to apply risk scoring to ordinary users. Test on at least one non-Google-Play device and one custom ROM if your market includes them.
+**False positives, which matter more.** Run on a clean, stock, unrooted device. **Pass:** no signals. **Fail:** any signal at all, which means you're about to apply risk scoring to ordinary users. If your market includes them, test on at least one device without Google Play and one custom ROM.
 
-**Then confirm you are not blocking.** Search your own codebase:
+**Then confirm you aren't blocking.** Search your own codebase:
 
 ```bash
 grep -rnE "isRooted|isJailbroken|isDebugged|RootSignals|JailbreakSignals" \
@@ -441,7 +450,7 @@ grep -rnE "isRooted|isJailbroken|isDebugged|RootSignals|JailbreakSignals" \
 
 Every hit should feed a report, not a branch that exits or refuses. A hit inside an `if` that ends a flow is §14.2's mistake.
 
-**And confirm the names are gone from release.** Decompile your release build with jadx and search for `RootSignals`. Finding it means your R8 configuration is keeping what §15.8 tells you to let it obfuscate.
+**Finally, confirm the names are gone from release.** Decompile your release build with jadx and search for `RootSignals`. If you find it, your R8 configuration is keeping what §15.8 tells you to let it obfuscate.
 
 ### 14.5 The hygiene controls, in code
 
@@ -452,11 +461,11 @@ Five hygiene controls turn up in every real assessment. Four of them are storage
 - **The clipboard** (`MASWE-0030`): §6.6.
 - **Encrypting a local database** with SQLCipher: §6.7.
 
-The fifth, the session timeout, belongs here because it is about how long a session survives on a device you do not control.
+The fifth, the session timeout, belongs here because it's about how long a session survives on a device you don't control.
 
 #### Session timeout
 
-`MASWE-0024`, *Sensitive Data Accessible After Session Termination*. Time the background period, not just user inactivity, because a phone in a pocket is not an active session:
+`MASWE-0024`, *Sensitive Data Accessible After Session Termination*. Time the background period, not only user inactivity, because a phone in a pocket isn't an active session:
 
 ```kotlin
 import android.os.SystemClock
@@ -488,19 +497,19 @@ ProcessLifecycleOwner.get().lifecycle.addObserver(
 )
 ```
 
-`elapsedRealtime()` matters: a timer built on `System.currentTimeMillis()` can be defeated by changing the device clock. The timestamp lives in memory, so if the system kills your process in the background the timer is simply lost; that is one more reason the server's session expiry, not this observer, is the real control. Reasonable starting points *(reasoned)*: 15 minutes for banking and payments, 30 for health and enterprise, hours or none for content and social. And "timeout" must mean invalidating the session **server-side** and clearing local data, per Chapter 0.3, not just showing a login screen over cached content.
+`elapsedRealtime()` matters: anyone can defeat a timer built on `System.currentTimeMillis()` by changing the device clock. The timestamp lives in memory, so if the system kills your process in the background, the timer is lost. That's one more reason the server's session expiry, not this observer, is the real control. Reasonable starting points *(reasoned)*: 15 minutes for banking and payments, 30 for health and enterprise, and hours or none for content and social. And "timeout" must mean invalidating the session **server-side** and clearing local data, as Chapter 0.3 explains, not only showing a login screen over cached content.
 
 **Key takeaways**
 
 - Every control in this chapter can be bypassed on a device the attacker controls. Buy cost and time, and design as if the controls fail.
 - Detect, report, and let the backend decide. Local blocking removes your intelligence and punishes legitimate users.
 - File-based root and jailbreak checks are the weakest signals you have; hardware-backed attestation is the strongest. Send both and weight them server-side.
-- Keep detection logic out of R8 keep rules, and remember that renaming does not hide the strings the logic checks for.
-- The hygiene controls (screenshots, logs and clipboard in §6.6, database encryption in §6.7, session timeouts here) are small, cheap, and found in every assessment. Ship them correctly first.
+- Keep detection logic out of R8 keep rules, and remember that renaming doesn't hide the strings the logic checks for.
+- The hygiene controls (screenshots, logs, and clipboard in §6.6; database encryption in §6.7; session timeouts here) are small, cheap, and found in every assessment. Ship them correctly first.
 
 **Try it**
 
-1. Install the **RootBeer Sample** (MASTG-APP-0032) on a stock emulator and on a Magisk-rooted one. Compare which checks fire, then enable DenyList for it and compare again.
+1. Install the **RootBeer Sample** (MASTG-APP-0032) on a stock emulator and on a Magisk-rooted one. Compare which checks fire. Then enable DenyList for it and compare again.
 2. Add `RootSignals` and `RuntimeSignals` to a debug build of your app, log the output, and run the false-negative and false-positive checks in the Verify it block above.
 3. Open a sensitive screen in your app, press Home, and open recents. If you can read the content in the thumbnail, fix it with §6.6's `FLAG_SECURE` pattern and check again. Then background the app for longer than your session timeout and confirm the server rejects the old session.
 

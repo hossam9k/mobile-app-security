@@ -3,6 +3,31 @@
 Corrections are the point of this repository, so they are recorded here as well as in
 [Part 12](book/12-verification.md). Newest first.
 
+## 2026-10-20 — editorial and currency pass
+
+- **Every line re-edited** in the Google and Microsoft developer-documentation voice: second person,
+  active voice, present tense, contractions, and no filler. Terms that a reader new to security would
+  hit undefined now get a plain definition where they first appear.
+- **House style moved to American spelling** in prose and headings, and prose lists take the serial comma. File names
+  are unchanged, and internal links to renamed headings were updated; external deep links to an old
+  heading anchor need updating. `CONTRIBUTING.md` records the new rules.
+- **Every claim re-checked** against primary sources: about 1,590 claims and identifiers plus all 278
+  source links, with 140 corrections. The largest: §5.5's attestation verifier now uses the app-identity
+  check that `android/keyattestation` restored in September 2026 (v0.3 and later); `datastore-tink` is a release candidate; bcrypt is
+  legacy-only; workflow lockfiles and the floating-tag-only `actions/checkout` backport are covered.
+- **Glossary** grew from 210 to 252 terms, and **Sources** from 278 to 284 entries. The OWASP Top 10 for
+  LLM Applications 2026 is now cited from its public text.
+- **Independent verification of the pass:** six reviewers re-read every edit against the original and
+  re-checked every correction. They found 1 critical error introduced by the pass (a MASWE beta-mapping
+  count, now reverted to the original, correct text), 15 major and 61 minor problems. All are fixed except
+  one major finding that proved wrong: Google documents both Play Console paths the book gives.
+- **A second, cold verification round** on the final text found no critical, 8 major and 60 minor problems,
+  all fixed except two style points left to the author. The largest: the CBC encrypt-then-MAC advice now
+  covers the IV with a separate key, and Part 11's pin-rotation steps no longer cause an outage.
+- **Compiled and ran** §5.5's attestation verifier and §10.7's App Attest verifiers on the JVM. Each had
+  the same bug, now fixed: a malformed signature threw instead of returning `false`.
+- **The review prompt** is in `editorial/PROMPT.md`, with one report per file in `editorial/reports/`.
+
 ## 2026-09-24 — final verification pass and diagram redesign
 
 - **Ten independent reviewers**, none of whom wrote the text, re-checked every part against primary
