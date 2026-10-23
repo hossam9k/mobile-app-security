@@ -3,6 +3,12 @@
 Corrections are the point of this repository, so they are recorded here as well as in
 [Part 12](book/12-verification.md). Newest first.
 
+## 2026-10-24 — masaudit in the practice chapters
+
+- **§22.1 and §23.2 introduce [masaudit](https://github.com/hossam9k/masaudit)**, the book's free
+  companion scanner: in the test-lab tool kit, and as a first pass before you walk the MASWE catalog.
+- **README:** masaudit now scans Flutter projects too.
+
 ## 2026-10-22 — code samples dual-licensed
 
 - **Cheat sheet re-verified** against the book: 18 accuracy fixes (for example, App Attest results are verified by your own server, and a SPKI pin survives only renewals that keep the same key).

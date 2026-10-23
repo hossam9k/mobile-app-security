@@ -33,7 +33,7 @@ The whole book also comes as a [single Markdown file](dist/Mobile-Application-Se
 
 **Need the short version?** The [cheat sheet](CHEATSHEET.md) is the whole book in a 20-minute read: every key term in one line, each topic in a few lines, the top interview questions with short answers, common myths, and the numbers worth remembering. It's also a [printable PDF](dist/Mobile-Security-Cheat-Sheet.pdf).
 
-**Want to check your own app?** [masaudit](https://github.com/hossam9k/masaudit) is the book's free companion tool. Point it at an Android, iOS, or Kotlin Multiplatform project (`pipx run masaudit .`): it finds the weaknesses this book describes, scales its advice to your kind of app, and links every finding to the section that explains it. It works offline with no AI, or with an AI assistant through its Claude Code plugin.
+**Want to check your own app?** [masaudit](https://github.com/hossam9k/masaudit) is the book's free companion tool. Point it at an Android, iOS, Kotlin Multiplatform, or Flutter project (`pipx run masaudit .`): it finds the weaknesses this book describes, scales its advice to your kind of app, and links every finding to the section that explains it. It works offline with no AI, or with an AI assistant through its Claude Code plugin.
 
 ---
 
