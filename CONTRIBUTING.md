@@ -81,3 +81,9 @@ editorial prompt in `editorial/PROMPT.md`; it applies these rules line by line a
   spelling. If you must rename one, update every link to its anchor: `scripts/check.py` checks § and
   Chapter references, not anchors.
 - Tag every code fence with its language.
+
+## Licensing of contributions
+
+By contributing, you license your prose under CC BY-SA 4.0 and your code samples under CC BY-SA 4.0
+*or* MIT-0, the same dual license as the rest of the book's code (see [LICENSE](LICENSE)). Don't paste
+code from sources whose license doesn't allow that; link to it instead.

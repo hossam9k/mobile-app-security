@@ -3,6 +3,15 @@
 Corrections are the point of this repository, so they are recorded here as well as in
 [Part 12](book/12-verification.md). Newest first.
 
+## 2026-10-22 — code samples dual-licensed
+
+- **Cheat sheet re-verified** against the book: 18 accuracy fixes (for example, App Attest results are verified by your own server, and a SPKI pin survives only renewals that keep the same key).
+- **README links [masaudit](https://github.com/hossam9k/masaudit)**, the book's free companion scanner.
+
+- **Code samples are now CC BY-SA 4.0 or MIT-0, at your choice.** Every code block written for the book
+  can be pasted into any app, including closed-source ones, with no attribution or ShareAlike duty. The
+  prose, and the OWASP text reproduced in Part 9, stay CC BY-SA 4.0. See `LICENSE`.
+
 ## 2026-10-20 — cheat sheet
 
 - **Added [`CHEATSHEET.md`](CHEATSHEET.md)** and a printable `dist/Mobile-Security-Cheat-Sheet.pdf`: a

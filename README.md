@@ -33,6 +33,8 @@ The whole book also comes as a [single Markdown file](dist/Mobile-Application-Se
 
 **Need the short version?** The [cheat sheet](CHEATSHEET.md) is the whole book in a 20-minute read: every key term in one line, each topic in a few lines, the top interview questions with short answers, common myths, and the numbers worth remembering. It's also a [printable PDF](dist/Mobile-Security-Cheat-Sheet.pdf).
 
+**Want to check your own app?** [masaudit](https://github.com/hossam9k/masaudit) is the book's free companion tool. Point it at an Android, iOS, or Kotlin Multiplatform project (`pipx run masaudit .`): it finds the weaknesses this book describes, scales its advice to your kind of app, and links every finding to the section that explains it. It works offline with no AI, or with an AI assistant through its Claude Code plugin.
+
 ---
 
 ## Reading orders
@@ -86,6 +88,8 @@ The items that change fastest are the certificate lifetime schedule, Play Integr
 ## License and attribution
 
 This work is licensed under [Creative Commons Attribution-ShareAlike 4.0](LICENSE).
+
+**Code samples are also MIT-0.** Every code block written for this book is offered under CC BY-SA 4.0 *or* [MIT No Attribution](LICENSE), at your choice, so you can paste a fix into any app, including a closed-source one, with no attribution or ShareAlike duty. The prose, and the OWASP text reproduced in Part 9, stay CC BY-SA.
 
 **Portions adapted from OWASP material**, which is itself licensed CC BY-SA 4.0:
 

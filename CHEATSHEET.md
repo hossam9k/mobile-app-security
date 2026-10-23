@@ -14,15 +14,15 @@ Five rules come out of it:
 
 1. **Nothing in the app is secret.** Keys, client secrets, and AI system prompts can all be read. Design so that a found secret is useless.
 2. **The server decides; the app only sends signals.** Prices, user identity, permissions, and limits are checked on the server, every time.
-3. **Keep keys in secure hardware.** The Android Keystore and the iOS Secure Enclave keep keys away from your app's memory.
-4. **Trust the platform defaults.** Android and iOS are secure by default. Most real bugs are a team switching a default off.
+3. **Keep keys in secure hardware.** Both platforms can create a key inside secure hardware and use it there, so the key never enters your app's memory.
+4. **Trust the platform defaults.** The sandbox, storage encryption, and strict HTTPS are on by default. Many real bugs are a team switching one off.
 5. **Detect and report; don't block on the phone.** A check on the phone can be removed. Send it to the server as a signal and let the server decide.
 
 ---
 
 ## 2. Words you must know (one line each)
 
-**Basics** (Chapter 0.1)
+**Basics** (Chapters 0.1 and 0.5)
 
 | Term | Plain meaning |
 |---|---|
@@ -67,7 +67,7 @@ Five rules come out of it:
 | Android Keystore | The system that keeps your keys in secure hardware; your app holds only a name for the key |
 | TEE | A protected area inside the main processor where keys are used |
 | StrongBox | An optional separate security chip on some Android phones. Slower, stronger |
-| Secure Enclave | Apple's separate secure processor. Its keys never leave it |
+| Secure Enclave | Apple's separate secure processor. Its keys never leave it unencrypted |
 | Keychain | iOS storage for small secrets. Its *accessibility class* decides when an item can be read |
 | Root / jailbreak | Removing the platform's restrictions so the owner (or attacker) controls everything |
 | Frida | A tool that injects code into a running app and changes what functions return |
@@ -77,10 +77,10 @@ Five rules come out of it:
 | Term | Plain meaning |
 |---|---|
 | TLS | Encryption and server identity for network traffic (HTTPS) |
-| Certificate authority (CA) | A company your phone trusts to vouch for server identities |
+| Certificate authority (CA) | An organization your phone trusts to vouch for server identities |
 | Certificate pinning | Your app accepts only specific keys for your server, not any trusted CA's |
-| SPKI pin | A hash of the server's public key. Survives certificate renewals; the right thing to pin |
-| Certificate Transparency (CT) | Public logs of every certificate issued, so a fake one gets noticed |
+| SPKI pin | A hash of the server's public key. Survives renewals that keep the same key; the right thing to pin |
+| Certificate Transparency (CT) | Public logs of every publicly trusted certificate, so you can spot one you didn't request |
 
 **Proving who is calling** (Chapters 9–12)
 
@@ -100,8 +100,8 @@ Five rules come out of it:
 | MASVS | The standard: 24 controls saying *what must be true* |
 | MASWE | 78 weaknesses saying *what goes wrong* |
 | MASTG | The testing guide: *how to check*. Cite only tests `MASTG-TEST-0200` and above |
-| MAS profiles | L1: baseline for every app. L2: high-risk apps; assumes a rooted or jailbroken OS. R: resilience, the user is the adversary (always on top of L1 or L2). P: privacy. Say "the MAS-L2 profile", not "MASVS L2" |
-| STRIDE | Six threat types: Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege |
+| MAS profiles | L1: baseline for every app. L2: high-risk apps; assumes the OS may be rooted or jailbroken. R: resilience, the user is the adversary (always on top of L1 or L2). P: privacy. Say "the MAS-L2 profile", not "MASVS L2" |
+| STRIDE | Six threat types: Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege (Chapter 0.5) |
 
 ---
 
@@ -113,21 +113,21 @@ Five rules come out of it:
 - Plain storage inside the sandbox isn't the usual problem. **Leaks** are: logs, backups, screenshots, the keyboard, notifications, and the clipboard (§6.5).
 
 **Network** (Chapters 7–8)
-- The defaults already block plain HTTP and ignore user-installed certificates on Android. Don't switch them off.
+- The defaults already block plain HTTP, and Android ignores user-installed certificates. Don't switch them off.
 - Pinning stops a rogue or device-installed CA. It doesn't stop an attacker on their own phone.
 - **Pin only if your team can maintain it for years:** pin the SPKI of an intermediate, ship a backup pin, and ship a new pin long before the new key goes live (§8.7).
 - Never call `proceed()` on a WebView TLS error. It's the single worst network mistake.
 
 **Attestation** (Chapters 9–10)
-- The verdict comes from Google or Apple to *your server*, so a hacked app can't fake it. That's why it beats an in-app root check.
-- Server checks first: package name, request hash or nonce, and timestamp. Then the verdict.
+- A hacked app can't fake the result: Play Integrity's verdict reaches *your server* from Google, and your server checks an App Attest signature itself. That's why it beats an in-app root check.
+- Play Integrity: check the package name, request hash or nonce, and timestamp first. Then the verdict.
 - App Attest: attest once per key, assert on sensitive requests, and require a **strictly increasing counter** (the check people forget).
 - Roll out in report-only mode first. Treat a verdict as a signal, not an on/off switch.
 
 **Biometrics** (Chapter 11)
-- `onSuccess()` is a boolean an attacker can fake with Frida. **Bind the prompt to a key**, and have the server verify a signature made by that key.
+- A biometric success callback is a boolean an attacker can fake with Frida. **Bind the prompt to a key**, and have the server verify a signature made by that key.
 - Android: Class 3 (`BIOMETRIC_STRONG`), `CryptoObject`. iOS: `.biometryCurrentSet`.
-- New fingerprint added? The key is invalidated, and that is the protection working. Allowing the device PIN on the key turns this off.
+- New fingerprint added? The key is invalidated, and that is the protection working. On Android, letting the device PIN unlock the key, or letting one unlock cover later uses, turns this off.
 
 **Backend** (Chapter 12)
 - Never trust from the app: user ID, price, quantity, balance, permissions, limits.
@@ -156,15 +156,15 @@ Five rules come out of it:
 - Untrusted input is anything that crossed a boundary, including other apps, files, links, and AI output. Use parameterized SQL, and allowlists, not blocklists.
 
 **AI features** (Chapter 20)
-- Treat model output as untrusted. Require user confirmation before any action. Keep the model's API key on your server. A system prompt is not a secret.
+- Treat model output as untrusted. Require user confirmation before any action with side effects. Keep the model's API key on your server. A system prompt is not a secret.
 
 **Kotlin Multiplatform** (Chapter 21)
-- Share logic and validation. Keep keystores, biometrics, attestation, pinning, and WebViews native on each platform.
+- Share logic and validation. Keep keystores, biometrics, attestation, pinning enforcement, and WebViews native on each platform.
 
 **Testing and incidents** (Chapters 22–24)
 - Test your own app: `strings`, decompile, check storage, intercept traffic, hook with Frida, replay a request.
 - Score with CVSS v4.0, which measures severity, not risk.
-- Incident order: **contain, assess, notify, fix, learn.** Under GDPR you have 72 hours to notify.
+- Incident order: **contain, assess, notify, fix, learn.** Under GDPR you have 72 hours to notify the regulator.
 
 ---
 
@@ -181,7 +181,7 @@ Five rules come out of it:
 - **Where do you store a token on Android in 2026?** Access token in memory; refresh token encrypted with Tink under a Keystore key, saved through DataStore.
 - **Is plain `SharedPreferences` insecure?** Mostly no. The sandbox and file-based encryption already protect it from other apps. Encrypt when your threat model includes a compromised device.
 - **TEE vs StrongBox?** The TEE is a protected area of the main processor; StrongBox is a separate chip. Both stop the key being copied; StrongBox resists stronger hardware attacks.
-- **Which Keychain class for a token?** `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`: readable only while unlocked, and never moved to another device.
+- **Which Keychain class for a token?** `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`: readable only while unlocked, and never usable on another device.
 - **Where do secrets leak besides storage?** Logs, backups, app-switcher screenshots, the keyboard cache, notifications, and the clipboard.
 
 **Network**
@@ -229,7 +229,7 @@ Every one of these, and 125 more, has a full answer in [Part 10](book/10-questio
 |---|---|
 | "Obfuscation hides our API key" | Anything in the app can be read. Move the key behind your server |
 | "Root detection protects us" | It's one hook away from removal. Use it as a signal, not a gate |
-| "HTTPS means nobody can read our traffic" | The device owner can, by rooting the phone or repackaging the app. HTTPS protects against *others* on the network |
+| "HTTPS means nobody can read our traffic" | The device owner can: on iOS by trusting their own certificate, on Android by rooting or repackaging the app. HTTPS protects against *others* on the network |
 | "Pinning makes us secure" | It stops one attack (a bad CA). Done badly, it causes outages |
 | "Biometric success means the user is verified" | Only if the result is tied to a key the server checks |
 | "Encrypt everything on the device" | Decide by threat model. Most leaks are logs, backups, and screenshots |
