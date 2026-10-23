@@ -3,6 +3,12 @@
 Corrections are the point of this repository, so they are recorded here as well as in
 [Part 12](book/12-verification.md). Newest first.
 
+## 2026-10-24 — README: three ways in
+
+- **README opens with a "Three ways in" table:** study the book, check your own app with
+  [masaudit](https://github.com/hossam9k/masaudit), or review with the cheat sheet. It replaces the
+  separate masaudit paragraph.
+
 ## 2026-10-24 — masaudit in the practice chapters
 
 - **§22.1 and §23.2 introduce [masaudit](https://github.com/hossam9k/masaudit)**, the book's free

@@ -8,6 +8,13 @@ A practical, verified reference on securing Android, iOS, and Kotlin Multiplatfo
 
 **Current to October 2026:** Android 17, iOS 27, and the three OWASP Mobile Application Security (MAS) projects: MASVS v2.1.0 (the security requirements), MASWE v1.0.0 (the weaknesses), and MASTG v2.0.0 (the testing guide).
 
+## Three ways in
+
+| **Study it** | **Check your own app** | **Review in 20 minutes** |
+|---|---|---|
+| [Start here](book/start-here.md), then Part 0 | `pipx run masaudit .` | [The cheat sheet](CHEATSHEET.md) |
+| Start here plus Parts 0 to 12, also as one [Markdown file](dist/Mobile-Application-Security-single-file.md) or a [PDF](dist/Mobile-Application-Security.pdf). | [masaudit](https://github.com/hossam9k/masaudit), the book's free companion scanner, finds the weaknesses this book describes in Android, iOS, Kotlin Multiplatform, and Flutter projects, scales its advice to your kind of app, and links every finding to the section that explains it. Offline with no AI, or with an AI assistant through its Claude Code plugin. | Every key term in one line, the top interview questions, and the numbers worth remembering. Also a [printable PDF](dist/Mobile-Security-Cheat-Sheet.pdf). |
+
 ---
 
 ## Read it
@@ -32,8 +39,6 @@ A practical, verified reference on securing Android, iOS, and Kotlin Multiplatfo
 The whole book also comes as a [single Markdown file](dist/Mobile-Application-Security-single-file.md) and a [PDF](dist/Mobile-Application-Security.pdf). `scripts/build.py` builds both from `book/`.
 
 **Need the short version?** The [cheat sheet](CHEATSHEET.md) is the whole book in a 20-minute read: every key term in one line, each topic in a few lines, the top interview questions with short answers, common myths, and the numbers worth remembering. It's also a [printable PDF](dist/Mobile-Security-Cheat-Sheet.pdf).
-
-**Want to check your own app?** [masaudit](https://github.com/hossam9k/masaudit) is the book's free companion tool. Point it at an Android, iOS, Kotlin Multiplatform, or Flutter project (`pipx run masaudit .`): it finds the weaknesses this book describes, scales its advice to your kind of app, and links every finding to the section that explains it. It works offline with no AI, or with an AI assistant through its Claude Code plugin.
 
 ---
 
