@@ -68,6 +68,8 @@ Working without one still gets you a long way. You can do static analysis of the
 
 **semgrep** does pattern-based static analysis. Many MASTG demos use it, and it finds every instance of a class of issue across a whole codebase, not one instance at a time.
 
+**masaudit** is this book's free companion scanner ([github.com/hossam9k/masaudit](https://github.com/hossam9k/masaudit)). Run `pipx run masaudit .` in an Android, iOS, Kotlin Multiplatform, or Flutter project. It reads source and configuration, scales each finding to your app type's MAS profile, and links it to the section of this book that explains it, plus its MASWE ID where one applies. It doesn't run the app or read the built binary, so it complements JADX and Frida rather than replacing them.
+
 Round out the kit with **apktool** to decode and repackage APKs, **radare2** (and its `rabin2` utility) to inspect iOS binaries, and `strings`, which ships with macOS and Linux.
 
 #### Getting a proxy CA trusted on modern Android
@@ -197,6 +199,8 @@ Each MASTG test page tells you what to look for, which tools to use, how to repr
 `https://mas.owasp.org/MASTG/tests/android/MASVS-STORAGE/MASTG-TEST-0207/`
 
 Check that the page is not deprecated first; Chapter 28 explains the banners.
+
+A scanner can give you a first pass. Run masaudit (§22.1) with your app type before you start the catalog: most findings name their MASWE ID, so you can mark those rows first, and its report lists the checks that found nothing. Treat that as a starting point. A scanner reads code; it can't see your server, your business logic, or how the app behaves at runtime, so you still walk every row.
 
 ### 23.3 Rate what you find
 
