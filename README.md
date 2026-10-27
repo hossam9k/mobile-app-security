@@ -1,4 +1,4 @@
-<img width="736" alt="Mobile Application Security — A Study Book for Engineers" src="assets/preview.jpeg" />
+<img width="736" alt="Mobile Application Security — A Study Book for Engineers" src="assets/cover.png" />
 
 # Mobile Application Security — A Study Book for Engineers
 
